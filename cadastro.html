@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Negócio & IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gestão Inteligente</small></div>
+  <div class="nav-group-label" data-admin-only>Gerência</div>
+  <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="nav-group-label">Principal</div>
+  <a class="nav-item" href="index.html"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item active" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
+  <div class="nav-group-label">Operacional</div>
+  <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
+  <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
+  <a class="nav-item" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
+  <div class="nav-group-label">Clientes & Fiscal</div>
+  <a class="nav-item" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
+  <a class="nav-item" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
+  <a class="nav-item" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">🏪</span>Negócio & Consultoria IA</div>
+    <div class="topbar-right">
+      <span class="badge-online"><span class="dot-live"></span>IA Ativa — Llama 3.1 via Groq</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="sidebar-col">
+      <!-- Formulário de cadastro do negócio -->
+      <div>
+        <div class="panel">
+          <div class="panel-header" id="form-header">Cadastrar Negócio</div>
+          <div class="panel-body">
+            <input type="hidden" id="f-id">
+            <div class="form-group"><label class="form-label">Nome do negócio *</label><input class="form-input" id="f-nome" placeholder="ex: Padaria São João"></div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Tipo do negócio *</label><input class="form-input" id="f-tipo" placeholder="ex: Padaria, Barbearia, Loja"></div>
+              <div class="form-group"><label class="form-label">Faturamento hoje (R$)</label><input class="form-input" id="f-fat" type="number" step="0.01" min="0" placeholder="0,00"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Clientes novos hoje</label><input class="form-input" id="f-cli" type="number" min="0" placeholder="0"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gostos e preferências dos clientes</label>
+              <input class="form-input" id="f-gostos" placeholder="ex: café especial, produtos naturais, promoções relâmpago">
+            </div>
+            <div class="gap-8" style="margin-top:16px;">
+              <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">Salvar Negócio</button>
+              <button class="btn btn-ghost" onclick="limpar()">Novo</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de negócios cadastrados -->
+        <div class="panel">
+          <div class="panel-header">Negócios Cadastrados <button class="btn btn-sm btn-ghost" onclick="carregar()">↻</button></div>
+          <div class="panel-body no-pad" id="lista-negocios">
+            <div class="empty-state">Carregando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IA Insights -->
+      <div>
+        <!-- Painel de análise da IA -->
+        <div class="panel">
+          <div class="panel-header">
+            🤖 Consultoria IA
+            <div class="gap-8">
+              <select class="form-select" id="ia-tipo" style="padding:5px 10px;width:160px;">
+                <option value="negocio">Análise do Negócio</option>
+                <option value="financeiro">Análise Financeira</option>
+                <option value="estoque">Análise de Estoque</option>
+              </select>
+              <button class="btn btn-sm btn-primary" id="btn-ia" onclick="gerarIA()">Analisar</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="ia-output" class="ia-box">
+              <div class="ia-box-label">🤖 SmartBiz IA — Llama 3.1</div>
+              <div class="ia-box-text text-dim">Selecione um negócio na lista ao lado e clique em "Analisar" para receber recomendações práticas geradas por inteligência artificial.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Análise financeira do dia (automática) -->
+        <div class="panel">
+          <div class="panel-header">📊 Resumo do Dia</div>
+          <div class="panel-body">
+            <div class="three-col" style="gap:12px;">
+              <div>
+                <div class="stat-label">Entradas</div>
+                <div class="stat-value green" style="font-size:20px;" id="s-e">—</div>
+              </div>
+              <div>
+                <div class="stat-label">Saídas</div>
+                <div class="stat-value red" style="font-size:20px;" id="s-s">—</div>
+              </div>
+              <div>
+                <div class="stat-label">Saldo</div>
+                <div class="stat-value" style="font-size:20px;" id="s-sal">—</div>
+              </div>
+            </div>
+            <hr class="divider">
+            <div class="three-col" style="gap:12px;">
+              <div>
+                <div class="stat-label">Vendas hoje</div>
+                <div class="stat-value" style="font-size:20px;" id="s-vend">—</div>
+              </div>
+              <div>
+                <div class="stat-label">Alertas estoque</div>
+                <div class="stat-value yellow" style="font-size:20px;" id="s-alerta">—</div>
+              </div>
+              <div>
+                <div class="stat-label">Clientes</div>
+                <div class="stat-value" style="font-size:20px;" id="s-cli">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+let negocios = [], negocioSel = null;
+
+async function carregar() {
+  try {
+    negocios = await get(API.negocios);
+    renderLista();
+    carregarResumo();
+  } catch(e) { toast('Erro ao conectar na API: '+e.message,'err'); }
+}
+
+function renderLista() {
+  const el = document.getElementById('lista-negocios');
+  if (!negocios.length) { el.innerHTML='<div class="empty-state">Nenhum negócio cadastrado.</div>'; return; }
+  el.innerHTML = negocios.map(n => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;"
+         onclick="selecionarNegocio('${n.id}')"
+         id="neg-row-${n.id}">
+      <div>
+        <div style="font-weight:500;font-size:14px;">${n.nome}</div>
+        <div class="text-dim" style="font-size:11px;">${n.tipo} · Fat. hoje: ${brl(n.faturamentoHoje||0)} · ${n.clientesNovos||0} clientes</div>
+      </div>
+      <div class="gap-8">
+        <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();selecionarNegocio('${n.id}');gerarIA()">🤖 IA</button>
+        <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();editar('${n.id}')">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();remover('${n.id}','${n.nome}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function selecionarNegocio(id) {
+  negocioSel = id;
+  document.querySelectorAll('[id^="neg-row-"]').forEach(el => el.style.background='');
+  const row = document.getElementById('neg-row-'+id);
+  if (row) row.style.background = 'rgba(0,200,150,.04)';
+}
+
+async function gerarIA() {
+  const tipo = document.getElementById('ia-tipo').value;
+  const out  = document.getElementById('ia-output');
+  out.innerHTML = '<div class="ia-box-label">🤖 Analisando...</div><div class="ia-box-text text-dim"><span class="spinner"></span>A IA está processando os dados do negócio...</div>';
+  const btn = document.getElementById('btn-ia');
+  const restore = spin(btn,'Processando...');
+  try {
+    let url;
+    if (tipo === 'negocio') {
+      if (!negocioSel && negocios.length) negocioSel = negocios[0].id;
+      if (!negocioSel) { out.innerHTML='<div class="ia-box-label text-red">Erro</div><div class="ia-box-text text-dim">Cadastre um negócio primeiro.</div>'; return; }
+      url = `${API.negocios}/${negocioSel}/insight`;
+    } else if (tipo === 'financeiro') {
+      url = `${API.negocios}/ia/financeiro`;
+    } else {
+      url = `${API.negocios}/ia/estoque`;
+    }
+    const texto = await get(url);
+    out.innerHTML = `<div class="ia-box-label">🤖 Análise — ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div><div class="ia-box-text">${texto}</div>`;
+  } catch(e) {
+    out.innerHTML = `<div class="ia-box-label" style="color:var(--red);">Erro na IA</div><div class="ia-box-text text-dim">Verifique a chave Groq no application.properties.<br><small>${e.message}</small></div>`;
+  } finally { restore(); }
+}
+
+function editar(id) {
+  const n = negocios.find(x=>x.id===id); if(!n) return;
+  document.getElementById('f-id').value    = n.id;
+  document.getElementById('f-nome').value  = n.nome;
+  document.getElementById('f-tipo').value  = n.tipo;
+  document.getElementById('f-fat').value   = n.faturamentoHoje||0;
+  document.getElementById('f-cli').value   = n.clientesNovos||0;
+  document.getElementById('f-gostos').value= n.gostos||'';
+  document.getElementById('form-header').textContent = 'Editar Negócio';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function limpar() {
+  ['f-id','f-nome','f-tipo','f-fat','f-cli','f-gostos'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('form-header').textContent='Cadastrar Negócio';
+}
+
+async function salvar() {
+  const id   = document.getElementById('f-id').value;
+  const body = {
+    nome: document.getElementById('f-nome').value.trim(),
+    tipo: document.getElementById('f-tipo').value.trim(),
+    faturamentoHoje: parseFloat(document.getElementById('f-fat').value)||0,
+    clientesNovos:   parseInt(document.getElementById('f-cli').value)||0,
+    gostos: document.getElementById('f-gostos').value.trim(),
+  };
+  if (!body.nome||!body.tipo) { toast('Nome e tipo são obrigatórios.','err'); return; }
+  const btn=document.getElementById('btn-salvar'); const restore=spin(btn,'Salvando...');
+  try {
+    if (id) await put(`${API.negocios}/${id}`,body);
+    else    await post(API.negocios,body);
+    toast(id?'✓ Negócio atualizado!':'✓ Negócio cadastrado!');
+    limpar(); carregar();
+  } catch(e) { toast('Erro: '+e.message,'err'); }
+  finally { restore(); }
+}
+
+async function remover(id, nome) {
+  if (!confirm(`Remover "${nome}"?`)) return;
+  try { await del(`${API.negocios}/${id}`); toast('✓ Removido.'); carregar(); }
+  catch(e) { toast('Erro: '+e.message,'err'); }
+}
+
+async function carregarResumo() {
+  try {
+    const [resumo, vendas, alertas, clientes] = await Promise.all([
+      get(`${API.lancamentos}/resumo/hoje`),
+      get(API.vendas),
+      get(`${API.produtos}/alerta`),
+      get(API.clientes),
+    ]);
+    const saldo = resumo.saldo||0;
+    document.getElementById('s-e').textContent   = brl(resumo.entradas||0);
+    document.getElementById('s-s').textContent   = brl(resumo.saidas||0);
+    document.getElementById('s-sal').textContent = brl(saldo);
+    document.getElementById('s-sal').className   = 'stat-value ' + (saldo>=0?'green':'red');
+    const vH = (vendas||[]).filter(v=>new Date(v.dataVenda).toDateString()===new Date().toDateString()).length;
+    document.getElementById('s-vend').textContent   = vH + ' vendas';
+    document.getElementById('s-alerta').textContent = alertas.length;
+    document.getElementById('s-cli').textContent    = (clientes||[]).length;
+  } catch {}
+}
+
+carregar();
+</script>
+</body>
+</html>

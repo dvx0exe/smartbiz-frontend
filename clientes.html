@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Clientes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.avatar {
+  width:34px;height:34px;border-radius:50%;
+  background:var(--emerald-dim);border:1px solid rgba(0,200,150,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--emerald);
+  flex-shrink:0;
+}
+.freq-bar { height:4px;background:var(--border);border-radius:2px;margin-top:3px; }
+.freq-fill { height:100%;background:var(--emerald);border-radius:2px; }
+.stars { color:var(--emerald);font-size:12px;letter-spacing:1px; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gestão Inteligente</small></div>
+  <div class="nav-group-label" data-admin-only>Gerência</div>
+  <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="nav-group-label">Principal</div>
+  <a class="nav-item" href="index.html"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
+  <div class="nav-group-label">Operacional</div>
+  <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
+  <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
+  <a class="nav-item" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
+  <div class="nav-group-label">Clientes & Fiscal</div>
+  <a class="nav-item active" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
+  <a class="nav-item" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
+  <a class="nav-item" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">👥</span>Gestão de Clientes</div>
+    <div class="topbar-right">
+      <input class="form-input" id="busca" placeholder="🔍 Buscar por nome ou CPF..." style="width:240px;padding:7px 12px;" oninput="filtrar()">
+      <select class="form-select" id="filtro-seg" style="width:130px;padding:7px 10px;" onchange="filtrar()">
+        <option value="">Todos</option><option>VIP</option><option>Regular</option><option>Inativo</option>
+      </select>
+      <button class="btn btn-sm btn-primary" onclick="openModal()">+ Novo Cliente</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Total de clientes</div><div class="stat-value" id="st-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">Clientes VIP</div><div class="stat-value green" id="st-vip">—</div><div class="stat-delta">≥ R$5.000 ou 20+ visitas</div></div>
+      <div class="stat-card"><div class="stat-label">Ticket Médio</div><div class="stat-value" id="st-ticket">—</div></div>
+      <div class="stat-card"><div class="stat-label">NPS Médio</div><div class="stat-value green" id="st-nps">—</div><div class="stat-delta">/10</div></div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="panel">
+      <div class="panel-header">
+        Base de Clientes
+        <button class="btn btn-sm btn-ghost" onclick="carregar()">↻ Atualizar</button>
+      </div>
+      <div class="panel-body no-pad table-wrap">
+        <table>
+          <thead>
+            <tr><th></th><th>Nome</th><th>CPF</th><th>Telefone</th><th>Segmento</th>
+            <th>Total gasto</th><th>Visitas</th><th>NPS</th><th>Última visita</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="cli-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Histórico (expansível) -->
+    <div class="panel" id="hist-panel" style="display:none;">
+      <div class="panel-header">
+        📋 Histórico de Compras — <span id="hist-nome"></span>
+        <button class="btn btn-sm btn-ghost" onclick="document.getElementById('hist-panel').style.display='none'">Fechar</button>
+      </div>
+      <div class="panel-body no-pad" id="hist-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title" id="modal-title">Novo Cliente</div>
+    <input type="hidden" id="f-id">
+    <div style="margin-bottom:16px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;">
+      ⚡ CPF é o identificador único do cliente
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">CPF * (identificador)</label><input class="form-input" id="f-cpf" placeholder="000.000.000-00"></div>
+      <div class="form-group"><label class="form-label">Nome completo *</label><input class="form-input" id="f-nome" placeholder="ex: Maria da Silva"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input class="form-input" id="f-tel" placeholder="(34) 99999-0000"></div>
+      <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" id="f-email" placeholder="maria@email.com"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Endereço</label><input class="form-input" id="f-end" placeholder="Rua, número, bairro, cidade"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Data de Nascimento</label><input class="form-input" id="f-nasc" type="date"></div>
+      <div class="form-group"><label class="form-label">NPS (0–10)</label><input class="form-input" id="f-nps" type="number" min="0" max="10" placeholder="—"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Segmento</label>
+        <select class="form-select" id="f-seg"><option>Regular</option><option>VIP</option><option>Inativo</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Observações</label><input class="form-input" id="f-obs" placeholder="ex: prefere produtos naturais"></div>
+    </div>
+    <div class="gap-8" style="margin-top:20px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">Salvar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+let clientes = [];
+document.addEventListener('DOMContentLoaded', () => maskCpf(document.getElementById('f-cpf')));
+
+async function carregar() {
+  try {
+    clientes = await get(API.clientes);
+    const vip    = clientes.filter(c=>c.segmento==='VIP').length;
+    const ticket = clientes.length ? clientes.reduce((s,c)=>s+c.totalGasto,0)/clientes.length : 0;
+    const npsCli = clientes.filter(c=>c.nps!=null);
+    const npsMedia= npsCli.length ? npsCli.reduce((s,c)=>s+c.nps,0)/npsCli.length : null;
+    document.getElementById('st-total').textContent  = clientes.length;
+    document.getElementById('st-vip').textContent    = vip;
+    document.getElementById('st-ticket').textContent = brl(ticket);
+    document.getElementById('st-nps').textContent    = npsMedia!=null ? npsMedia.toFixed(1) : '—';
+    filtrar();
+  } catch(e) { toast('Erro ao carregar clientes: '+e.message,'err'); }
+}
+
+function filtrar() {
+  const q   = document.getElementById('busca').value.toLowerCase();
+  const seg = document.getElementById('filtro-seg').value;
+  const lista = clientes.filter(c =>
+    (!q || c.nome.toLowerCase().includes(q) || c.cpf.includes(q)) &&
+    (!seg || c.segmento===seg)
+  );
+  renderTabela(lista);
+}
+
+function renderTabela(lista) {
+  const body = document.getElementById('cli-body');
+  if (!lista.length) { body.innerHTML='<tr><td colspan="10" class="empty-state">Nenhum cliente encontrado.</td></tr>'; return; }
+  const maxV = Math.max(...lista.map(c=>c.totalVisitas),1);
+  body.innerHTML = lista.map(c => {
+    const ini = c.nome.charAt(0).toUpperCase();
+    const stars = c.nps!=null ? '★'.repeat(Math.round(c.nps/2))+'☆'.repeat(5-Math.round(c.nps/2)) : '—';
+    const pct   = Math.round((c.totalVisitas/maxV)*100);
+    return `<tr>
+      <td><div class="avatar">${ini}</div></td>
+      <td><strong>${c.nome}</strong>${c.email?`<div class="text-dim" style="font-size:10px;">${c.email}</div>`:''}</td>
+      <td class="text-mono" style="font-size:12px;">${c.cpf}</td>
+      <td class="text-dim">${c.telefone||'—'}</td>
+      <td>${badgeStatus(c.segmento||'Regular')}</td>
+      <td class="text-mono text-green">${brl(c.totalGasto)}</td>
+      <td>
+        <div style="font-size:12px;">${c.totalVisitas}x</div>
+        <div class="freq-bar" style="width:70px;"><div class="freq-fill" style="width:${pct}%"></div></div>
+      </td>
+      <td><span class="stars" title="${c.nps!=null?c.nps+'/10':'—'}">${stars}</span></td>
+      <td class="text-dim" style="font-size:11px;">${dtd(c.ultimaVisita)||'—'}</td>
+      <td>
+        <div class="gap-8">
+          <button class="btn btn-sm btn-ghost" onclick="verHistorico('${c.id}','${c.nome}')">📋</button>
+          <button class="btn btn-sm btn-ghost" onclick="editar('${c.id}')">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="remover('${c.id}','${c.nome}')">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function verHistorico(id, nome) {
+  const c = clientes.find(x=>x.id===id);
+  if (!c) return;
+  document.getElementById('hist-nome').textContent = nome;
+  document.getElementById('hist-panel').style.display = 'block';
+  const hist = c.historicoCompras||[];
+  document.getElementById('hist-body').innerHTML = hist.length === 0
+    ? '<div class="empty-state">Nenhuma compra registrada.</div>'
+    : hist.map(h => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:13px;">${h.descricao}</div>
+          <div class="text-dim" style="font-size:10px;">${dt(h.data)}</div>
+        </div>
+        <span class="text-mono text-green">${brl(h.valor)}</span>
+      </div>`).join('');
+  document.getElementById('hist-panel').scrollIntoView({ behavior:'smooth' });
+}
+
+function openModal() {
+  ['f-id','f-nome','f-tel','f-email','f-end','f-nasc','f-nps','f-obs'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('f-cpf').value='';
+  document.getElementById('f-cpf').readOnly = false;
+  document.getElementById('f-seg').value='Regular';
+  document.getElementById('modal-title').textContent='Novo Cliente';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function editar(id) {
+  const c = clientes.find(x=>x.id===id); if(!c) return;
+  document.getElementById('f-id').value    = c.id;
+  document.getElementById('f-cpf').value   = c.cpf;
+  document.getElementById('f-cpf').readOnly= true; // CPF não pode ser alterado
+  document.getElementById('f-nome').value  = c.nome;
+  document.getElementById('f-tel').value   = c.telefone||'';
+  document.getElementById('f-email').value = c.email||'';
+  document.getElementById('f-end').value   = c.endereco||'';
+  document.getElementById('f-nasc').value  = c.dataNascimento||'';
+  document.getElementById('f-nps').value   = c.nps!=null?c.nps:'';
+  document.getElementById('f-seg').value   = c.segmento||'Regular';
+  document.getElementById('f-obs').value   = c.observacoes||'';
+  document.getElementById('modal-title').textContent='Editar Cliente';
+  document.getElementById('modal').classList.add('open');
+}
+
+async function salvar() {
+  const id = document.getElementById('f-id').value;
+  const body = {
+    cpf: document.getElementById('f-cpf').value.trim(),
+    nome: document.getElementById('f-nome').value.trim(),
+    telefone: document.getElementById('f-tel').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    endereco: document.getElementById('f-end').value.trim(),
+    dataNascimento: document.getElementById('f-nasc').value||null,
+    nps: document.getElementById('f-nps').value!==''?parseInt(document.getElementById('f-nps').value):null,
+    segmento: document.getElementById('f-seg').value,
+    observacoes: document.getElementById('f-obs').value.trim(),
+  };
+  if (!body.cpf||!body.nome) { toast('CPF e nome são obrigatórios.','err'); return; }
+  const btn=document.getElementById('btn-salvar'); const restore=spin(btn,'Salvando...');
+  try {
+    if (id) await put(`${API.clientes}/${id}`,body);
+    else    await post(API.clientes,body);
+    toast(id?'✓ Cliente atualizado!':'✓ Cliente cadastrado com CPF: '+body.cpf);
+    closeModal(); carregar();
+  } catch(e) { toast('Erro: '+e.message,'err'); }
+  finally { restore(); }
+}
+
+async function remover(id, nome) {
+  if (!confirm(`Remover cliente "${nome}"?`)) return;
+  try { await del(`${API.clientes}/${id}`); toast('✓ Cliente removido.'); carregar(); }
+  catch(e) { toast('Erro: '+e.message,'err'); }
+}
+
+carregar();
+</script>
+</body>
+</html>

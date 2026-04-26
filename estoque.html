@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Estoque</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gestão Inteligente</small></div>
+  <div class="nav-group-label" data-admin-only>Gerência</div>
+  <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="nav-group-label">Principal</div>
+  <a class="nav-item" href="index.html"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
+  <div class="nav-group-label">Operacional</div>
+  <a class="nav-item active" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
+  <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
+  <a class="nav-item" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
+  <div class="nav-group-label">Clientes & Fiscal</div>
+  <a class="nav-item" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
+  <a class="nav-item" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
+  <a class="nav-item" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">📦</span>Controle de Estoque</div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-outline" onclick="analisarIA()">🤖 Análise IA</button>
+      <button class="btn btn-sm btn-primary" onclick="openModal()">+ Novo Produto</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Total de produtos</div><div class="stat-value" id="st-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">Em alerta</div><div class="stat-value yellow" id="st-alerta">—</div><div class="stat-delta">abaixo do mínimo</div></div>
+      <div class="stat-card"><div class="stat-label">Sem estoque</div><div class="stat-value red" id="st-zero">—</div></div>
+      <div class="stat-card"><div class="stat-label">Valor em estoque</div><div class="stat-value green" id="st-valor">—</div><div class="stat-delta">a preço de custo</div></div>
+    </div>
+
+    <div id="ia-box" class="ia-box" style="margin-bottom:20px;display:none;">
+      <div class="ia-box-label">🤖 Análise de Estoque — IA</div>
+      <div class="ia-box-text" id="ia-text"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        Produtos Cadastrados
+        <div class="gap-8">
+          <input class="form-input" id="busca" placeholder="Buscar produto..." style="width:200px;padding:6px 10px;" oninput="filtrar()">
+          <select class="form-select" id="filtro-cat" style="width:140px;padding:6px 10px;" onchange="filtrar()">
+            <option value="">Todas categorias</option>
+          </select>
+          <button class="btn btn-sm btn-ghost" onclick="carregarProdutos()">↻ Atualizar</button>
+        </div>
+      </div>
+      <div class="panel-body no-pad table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th><th>Produto</th><th>Categoria</th>
+              <th>Quantidade</th><th>Mín.</th><th>Custo</th><th>Venda</th>
+              <th>Margem</th><th>Status</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="est-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Novo Produto</div>
+    <input type="hidden" id="f-id">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="f-nome"></div>
+      <div class="form-group"><label class="form-label">Código / SKU</label><input class="form-input" id="f-codigo"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Categoria</label><input class="form-input" id="f-cat"></div>
+      <div class="form-group"><label class="form-label">Unidade</label>
+        <select class="form-select" id="f-un">
+          <option>UN</option><option>KG</option><option>L</option><option>CX</option><option>PCT</option><option>M</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group"><label class="form-label">Quantidade</label><input class="form-input" id="f-qty" type="number" value="0"></div>
+      <div class="form-group"><label class="form-label">Mínimo</label><input class="form-input" id="f-min" type="number" value="5"></div>
+      <div class="form-group"><label class="form-label">Fornecedor</label><input class="form-input" id="f-forn"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Custo (R$)</label><input class="form-input" id="f-custo" type="number" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Venda (R$)</label><input class="form-input" id="f-venda" type="number" step="0.01"></div>
+    </div>
+    <div class="gap-8" style="margin-top:20px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">Salvar Produto</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-mov">
+  <div class="modal">
+    <div class="modal-title">Movimentar Estoque</div>
+    <div style="margin-bottom:16px;font-size:13px;color:var(--text-mid);" id="mov-nome-label"></div>
+    <input type="hidden" id="mov-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="mov-tipo">
+          <option value="1">Entrada (+)</option>
+          <option value="-1">Saída (-)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quantidade</label>
+        <input class="form-input" id="mov-qty" type="number" value="1">
+      </div>
+    </div>
+    <div class="gap-8" style="justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeMov()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarMov()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+// Função auxiliar de moeda que faltava
+const brl = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+
+let produtos = [], categorias = new Set();
+
+async function carregarProdutos() {
+  try {
+    produtos = await get(`${API.produtos}?apenasAtivos=false`);
+    categorias.clear();
+    produtos.forEach(p => p.categoria && categorias.add(p.categoria));
+
+    const sel = document.getElementById('filtro-cat');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Todas categorias</option>'
+      + [...categorias].map(c => `<option value="${c}">${c}</option>`).join('');
+    sel.value = cur;
+
+    const zero   = produtos.filter(p => p.quantidade === 0).length;
+    const alerta = produtos.filter(p => p.quantidade < p.quantidadeMinima && p.quantidade > 0).length;
+    const valor  = produtos.reduce((s,p) => s + (p.quantidade * (p.precoCusto||0)), 0);
+    
+    document.getElementById('st-total').textContent  = produtos.filter(p=>p.ativo).length;
+    document.getElementById('st-alerta').textContent = alerta;
+    document.getElementById('st-zero').textContent   = zero;
+    document.getElementById('st-valor').textContent  = brl(valor);
+
+    filtrar();
+  } catch(e) { 
+    if(typeof toast === 'function') toast('Erro ao carregar: ' + e.message, 'err');
+    else console.error(e);
+  }
+}
+
+function filtrar() {
+  const busca = document.getElementById('busca').value.toLowerCase();
+  const cat   = document.getElementById('filtro-cat').value;
+  const lista = produtos.filter(p =>
+    (!busca || p.nome.toLowerCase().includes(busca) || (p.codigo||'').includes(busca)) &&
+    (!cat || p.categoria === cat)
+  );
+  renderTabela(lista);
+}
+
+function renderTabela(lista) {
+  const tbody = document.getElementById('est-body');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">Nenhum produto.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(p => {
+    const margem = p.precoCusto > 0 ? ((p.precoVenda - p.precoCusto) / p.precoCusto * 100).toFixed(0) : '—';
+    let badge = 'badge-green', statusTxt = 'OK';
+    if (!p.ativo) { badge='badge-gray'; statusTxt='Inativo'; }
+    else if (p.quantidade === 0) { badge='badge-red'; statusTxt='Zerado'; }
+    else if (p.quantidade < p.quantidadeMinima){ badge='badge-yellow'; statusTxt='Alerta'; }
+
+    return `<tr>
+      <td class="text-mono text-dim">${p.codigo||'—'}</td>
+      <td><strong>${p.nome}</strong></td>
+      <td>${p.categoria||'—'}</td>
+      <td>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="openMov('${p.id}','${p.nome}',-1)">−</button>
+          <span class="qty-num">${p.quantidade}</span>
+          <button class="qty-btn" onclick="openMov('${p.id}','${p.nome}',1)">+</button>
+        </div>
+      </td>
+      <td class="text-dim">${p.quantidadeMinima}</td>
+      <td class="text-mono">${brl(p.precoCusto)}</td>
+      <td class="text-mono text-green">${brl(p.precoVenda)}</td>
+      <td class="text-mono">${margem !== '—' ? margem+'%' : '—'}</td>
+      <td><span class="badge ${badge}">${statusTxt}</span></td>
+      <td>
+        <div class="gap-8">
+          <button class="btn btn-sm btn-ghost" onclick="editarProduto('${p.id}')">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="remover('${p.id}','${p.nome}')">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal() {
+  document.getElementById('f-id').value=''; 
+  document.getElementById('modal-title').textContent = 'Novo Produto';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function editarProduto(id) {
+  const p = produtos.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('f-id').value = p.id;
+  document.getElementById('f-nome').value = p.nome;
+  document.getElementById('f-codigo').value = p.codigo||'';
+  document.getElementById('f-cat').value = p.categoria||'';
+  document.getElementById('f-qty').value = p.quantidade;
+  document.getElementById('f-min').value = p.quantidadeMinima;
+  document.getElementById('f-custo').value = p.precoCusto;
+  document.getElementById('f-venda').value = p.precoVenda;
+  document.getElementById('modal-title').textContent = 'Editar Produto';
+  document.getElementById('modal').classList.add('open');
+}
+
+async function salvar() {
+  const id = document.getElementById('f-id').value;
+  const body = {
+    nome: document.getElementById('f-nome').value,
+    quantidade: parseInt(document.getElementById('f-qty').value),
+    quantidadeMinima: parseInt(document.getElementById('f-min').value),
+    precoCusto: parseFloat(document.getElementById('f-custo').value),
+    precoVenda: parseFloat(document.getElementById('f-venda').value)
+  };
+  try {
+    if (id) await put(`${API.produtos}/${id}`, body);
+    else await post(API.produtos, body);
+    closeModal(); carregarProdutos();
+  } catch(e) { toast('Erro ao salvar: ' + e.message, 'err'); }
+}
+
+function openMov(id, nome, sign) {
+  document.getElementById('mov-id').value = id;
+  document.getElementById('mov-nome-label').textContent = nome;
+  document.getElementById('mov-tipo').value = sign;
+  document.getElementById('modal-mov').classList.add('open');
+}
+function closeMov() { document.getElementById('modal-mov').classList.remove('open'); }
+
+async function confirmarMov() {
+  const id = document.getElementById('mov-id').value;
+  const delta = parseInt(document.getElementById('mov-tipo').value) * parseInt(document.getElementById('mov-qty').value);
+  try {
+    await patch(`${API.produtos}/${id}/movimentar?delta=${delta}`);
+    closeMov(); carregarProdutos();
+  } catch(e) { toast('Erro: ' + e.message, 'err'); }
+}
+
+async function remover(id, nome) {
+  if (!confirm(`Remover "${nome}"?`)) return;
+  try { await del(`${API.produtos}/${id}`); carregarProdutos(); }
+  catch(e) { toast('Erro: ' + e.message, 'err'); }
+}
+
+async function analisarIA() {
+  const box  = document.getElementById('ia-box');
+  const text = document.getElementById('ia-text');
+  box.style.display = 'block';
+  text.innerHTML = '<span class="spinner"></span>Analisando estoque com IA...';
+  try {
+    const r = await get(`${API.negocios}/ia/estoque`);
+    text.textContent = r;
+  } catch(e) {
+    text.textContent = 'Erro na análise: ' + e.message;
+  }
+}
+
+// Inicia a carga
+carregarProdutos();
+</script>
+</body>
+</html>

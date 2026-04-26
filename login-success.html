@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>SmartBiz · Autenticando...</title>
+<style>
+  body{margin:0;background:#080d0b;display:flex;align-items:center;justify-content:center;height:100vh;
+       font-family:'DM Sans',sans-serif;color:#e2ede6;}
+  .wrap{text-align:center;}
+  .logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;margin-bottom:16px;}
+  .logo span{color:#00c896;}
+  .msg{color:rgba(226,237,230,.5);font-size:13px;}
+  .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(0,200,150,.25);
+           border-top-color:#00c896;border-radius:50%;animation:spin .65s linear infinite;
+           vertical-align:middle;margin-right:8px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">Smart<span>Biz</span></div>
+    <div class="msg"><span class="spinner"></span>Validando credenciais...</div>
+  </div>
+  <script>
+  (function() {
+    // Decodifica payload do JWT (sem verificação de assinatura — apenas leitura no cliente)
+    function decodeJwt(token) {
+      try {
+        const payload = token.split('.')[1];
+        // base64url → base64 → decode
+        const b64 = payload.replace(/-/g,'+').replace(/_/g,'/');
+        const json = decodeURIComponent(
+          atob(b64).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('')
+        );
+        return JSON.parse(json);
+      } catch(e) { return {}; }
+    }
+
+    const params     = new URLSearchParams(window.location.search);
+    const token      = params.get('token');
+    const roleParam  = params.get('role');
+    const bidParam   = params.get('businessId');
+
+    if (!token) {
+      alert('Erro na autenticação. Tente novamente.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Decodifica o JWT para obter email e confirmar claims
+    const claims     = decodeJwt(token);
+    const email      = claims.sub  || '';
+    const role       = roleParam   || claims.role || '';
+    const businessId = bidParam    || claims.businessId || '';
+
+    // Persiste dados de autenticação
+    localStorage.setItem('sb_token', token);
+    localStorage.setItem('sb_role',  role);
+    if (email)      localStorage.setItem('sb_email',       email);
+    if (businessId) localStorage.setItem('sb_business_id', businessId);
+
+    // Redireciona conforme perfil
+    if (role === 'ADMIN') {
+      window.location.href = 'admin-dashboard.html';
+    } else if (role === 'USER' && businessId) {
+      sessionStorage.setItem('sb_viewing_business', businessId);
+      window.location.href = 'index.html';
+    } else {
+      localStorage.clear();
+      window.location.href = 'login.html?error=unauthorized';
+    }
+  })();
+  </script>
+</body>
+</html>

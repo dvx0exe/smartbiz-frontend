@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Fluxo de Caixa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gestão Inteligente</small></div>
+  <div class="nav-group-label" data-admin-only>Gerência</div>
+  <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="nav-group-label">Principal</div>
+  <a class="nav-item" href="index.html"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
+  <div class="nav-group-label">Operacional</div>
+  <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
+  <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
+  <a class="nav-item active" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
+  <div class="nav-group-label">Clientes & Fiscal</div>
+  <a class="nav-item" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
+  <a class="nav-item" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
+  <a class="nav-item" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">💰</span>Fluxo de Caixa</div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-outline" onclick="analisarIA()">🤖 Análise IA</button>
+      <button class="btn btn-sm btn-primary" onclick="openModal()">+ Lançamento</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Entradas Hoje</div><div class="stat-value green" id="s-e">R$0,00</div></div>
+      <div class="stat-card"><div class="stat-label">Saídas Hoje</div><div class="stat-value red" id="s-s">R$0,00</div></div>
+      <div class="stat-card"><div class="stat-label">Saldo Hoje</div><div class="stat-value" id="s-sal">R$0,00</div></div>
+      <div class="stat-card"><div class="stat-label">Total de Lançamentos</div><div class="stat-value" id="s-qt">0</div></div>
+    </div>
+
+    <div id="ia-box" class="ia-box" style="margin-bottom:20px;display:none;">
+      <div class="ia-box-label">🤖 Análise Financeira — IA</div>
+      <div class="ia-box-text" id="ia-text"></div>
+    </div>
+
+    <div class="sidebar-col">
+      <!-- Formulário -->
+      <div class="panel">
+        <div class="panel-header">Novo Lançamento Manual</div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label class="form-label">Tipo *</label>
+            <select class="form-select" id="f-tipo">
+              <option value="ENTRADA">Entrada (Receita)</option>
+              <option value="SAIDA">Saída (Despesa)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descrição *</label>
+            <input class="form-input" id="f-desc" placeholder="ex: Venda de produtos, Conta de energia">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Valor (R$) *</label>
+              <input class="form-input" id="f-val" type="number" step="0.01" min="0.01" placeholder="0,00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Forma de Pagamento</label>
+              <select class="form-select" id="f-pag">
+                <option>PIX</option><option>Dinheiro</option>
+                <option>Cartão de Débito</option><option>Cartão de Crédito</option><option>Boleto</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Categoria</label>
+            <select class="form-select" id="f-cat">
+              <option>Vendas</option><option>Serviços</option><option>Fornecedores</option>
+              <option>Aluguel</option><option>Salários</option><option>Marketing</option><option>Outros</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-full" id="btn-lancar" onclick="lancar()">Registrar Lançamento</button>
+        </div>
+      </div>
+
+      <!-- Extrato -->
+      <div>
+        <div class="panel">
+          <div class="panel-header">
+            Extrato
+            <div class="gap-8">
+              <select class="form-select" id="periodo" style="padding:5px 10px;width:140px;" onchange="carregarPeriodo()">
+                <option value="hoje">Hoje</option>
+                <option value="7">Últimos 7 dias</option>
+                <option value="30">Últimos 30 dias</option>
+              </select>
+              <button class="btn btn-sm btn-ghost" onclick="carregarPeriodo()">↻</button>
+            </div>
+          </div>
+          <div class="panel-body no-pad" style="max-height:420px;overflow-y:auto;" id="extrato">
+            <div class="empty-state">Carregando...</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">Distribuição por Categoria</div>
+          <div class="panel-body" id="cats-resumo"><div class="empty-state">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+async function carregarResumoHoje() {
+  try {
+    const resumo = await get(`${API.lancamentos}/resumo/hoje`);
+    document.getElementById('s-e').textContent = brl(resumo.entradas||0);
+    document.getElementById('s-s').textContent = brl(resumo.saidas||0);
+    const sal = resumo.saldo||0;
+    const el = document.getElementById('s-sal');
+    el.textContent = brl(sal);
+    el.className = 'stat-value ' + (sal>=0?'green':'red');
+  } catch {}
+}
+
+async function carregarPeriodo() {
+  const p = document.getElementById('periodo').value;
+  let url = `${API.lancamentos}/hoje`;
+  if (p !== 'hoje') {
+    const fim = new Date(), ini = new Date();
+    ini.setDate(ini.getDate() - parseInt(p));
+    url = `${API.lancamentos}/periodo?inicio=${ini.toISOString().split('T')[0]}&fim=${fim.toISOString().split('T')[0]}`;
+  }
+  try {
+    const lista = await get(url);
+    document.getElementById('s-qt').textContent = lista.length;
+    renderExtrato(lista);
+    renderCategorias(lista);
+  } catch(e) { toast('Erro: '+e.message,'err'); }
+}
+
+function renderExtrato(lista) {
+  const el = document.getElementById('extrato');
+  if (!lista.length) { el.innerHTML='<div class="empty-state">Nenhum lançamento no período.</div>'; return; }
+  el.innerHTML = [...lista].reverse().map(l => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(0,200,150,.04);">
+      <span class="badge ${l.tipo==='ENTRADA'?'badge-green':'badge-red'}">${l.tipo}</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;">${l.descricao}</div>
+        <div class="text-dim" style="font-size:10px;font-family:'DM Mono',monospace;">${l.categoria||'—'} · ${l.formaPagamento||'—'} · ${l.origem||'MANUAL'}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="text-mono ${l.tipo==='ENTRADA'?'text-green':'text-red'}" style="font-size:13px;">${l.tipo==='ENTRADA'?'+':'-'}${brl(l.valor)}</div>
+        <div class="text-dim" style="font-size:10px;">${dt(l.data)}</div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="remover('${l.id}')" title="Remover">✕</button>
+    </div>`).join('');
+}
+
+function renderCategorias(lista) {
+  const mapa = {};
+  lista.forEach(l => {
+    const k = (l.categoria||'Outros')+':'+l.tipo;
+    mapa[k] = (mapa[k]||0) + l.valor;
+  });
+  const el = document.getElementById('cats-resumo');
+  const entries = Object.entries(mapa).sort((a,b)=>b[1]-a[1]);
+  if (!entries.length) { el.innerHTML='<div class="empty-state">—</div>'; return; }
+  const max = Math.max(...entries.map(e=>e[1]));
+  el.innerHTML = entries.map(([k,v]) => {
+    const [cat, tipo] = k.split(':');
+    const pct = Math.round(v/max*100);
+    return `<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;">
+        <span>${cat} <span class="badge ${tipo==='ENTRADA'?'badge-green':'badge-red'}" style="font-size:8px;">${tipo}</span></span>
+        <span class="text-mono">${brl(v)}</span>
+      </div>
+      <div style="height:4px;background:var(--border);border-radius:2px;">
+        <div style="height:100%;width:${pct}%;background:${tipo==='ENTRADA'?'var(--emerald)':'var(--red)'};border-radius:2px;transition:width .4s;"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function lancar() {
+  const tipo = document.getElementById('f-tipo').value;
+  const desc = document.getElementById('f-desc').value.trim();
+  const val  = parseFloat(document.getElementById('f-val').value)||0;
+  const pag  = document.getElementById('f-pag').value;
+  const cat  = document.getElementById('f-cat').value;
+  if (!desc||val<=0) { toast('Preencha descrição e valor.','err'); return; }
+  const btn = document.getElementById('btn-lancar');
+  const restore = spin(btn,'Registrando...');
+  try {
+    await post(API.lancamentos, { tipo, descricao:desc, valor:val, formaPagamento:pag, categoria:cat });
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-val').value='';
+    toast(`✓ Lançamento de ${brl(val)} registrado!`);
+    carregarResumoHoje(); carregarPeriodo();
+  } catch(e) { toast('Erro: '+e.message,'err'); }
+  finally { restore(); }
+}
+
+async function remover(id) {
+  if (!confirm('Remover este lançamento?')) return;
+  try { await del(`${API.lancamentos}/${id}`); toast('✓ Removido.'); carregarResumoHoje(); carregarPeriodo(); }
+  catch(e) { toast('Erro: '+e.message,'err'); }
+}
+
+async function analisarIA() {
+  const box=document.getElementById('ia-box'); const text=document.getElementById('ia-text');
+  box.style.display='block';
+  text.innerHTML='<span class="spinner"></span>Analisando caixa com IA...';
+  try { text.textContent = await get(`${API.lancamentos}/ia/analise`); }
+  catch(e) { text.textContent='Erro na análise: '+e.message; }
+}
+
+carregarResumoHoje(); carregarPeriodo();
+</script>
+</body>
+</html>

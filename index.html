@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gestão Inteligente</small></div>
+  <div class="nav-group-label" data-admin-only>Gerência</div>
+  <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="nav-group-label">Principal</div>
+  <a class="nav-item active" href="index.html"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio & IA</a>
+  <div class="nav-group-label">Operacional</div>
+  <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
+  <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
+  <a class="nav-item" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
+  <div class="nav-group-label">Clientes & Fiscal</div>
+  <a class="nav-item" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
+  <a class="nav-item" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
+  <a class="nav-item" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">📊</span>Dashboard</div>
+    <div class="topbar-right">
+      <span class="badge-online"><span class="dot-live"></span>API Conectada</span>
+      <span id="clock" class="text-mono" style="font-size:11px;color:var(--text-dim)"></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Vendas hoje</div>
+        <div class="stat-value green" id="d-vendas">—</div>
+        <div class="stat-delta" id="d-vendas-qt">carregando...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Saldo do caixa</div>
+        <div class="stat-value" id="d-saldo">—</div>
+        <div class="stat-delta" id="d-saldo-info">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Produtos em alerta</div>
+        <div class="stat-value yellow" id="d-alerta">—</div>
+        <div class="stat-delta">estoque abaixo do mínimo</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Clientes cadastrados</div>
+        <div class="stat-value" id="d-clientes">—</div>
+        <div class="stat-delta" id="d-clientes-vip">—</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <!-- Últimas vendas -->
+      <div class="panel">
+        <div class="panel-header">
+          Últimas Vendas
+          <a href="pdv.html" class="btn btn-sm btn-outline">Abrir PDV</a>
+        </div>
+        <div class="panel-body no-pad">
+          <div id="ul-vendas"><div class="empty-state">Carregando...</div></div>
+        </div>
+      </div>
+
+      <!-- Resumo de caixa hoje -->
+      <div>
+        <div class="panel">
+          <div class="panel-header">Caixa — Hoje</div>
+          <div class="panel-body">
+            <div class="three-col" style="gap:12px;margin-bottom:0;">
+              <div>
+                <div class="stat-label">Entradas</div>
+                <div class="stat-value green" style="font-size:18px;" id="cx-e">—</div>
+              </div>
+              <div>
+                <div class="stat-label">Saídas</div>
+                <div class="stat-value red" style="font-size:18px;" id="cx-s">—</div>
+              </div>
+              <div>
+                <div class="stat-label">Saldo</div>
+                <div class="stat-value" style="font-size:18px;" id="cx-sal">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas de estoque -->
+        <div class="panel">
+          <div class="panel-header">
+            Alertas de Estoque
+            <a href="estoque.html" class="btn btn-sm btn-outline">Ver tudo</a>
+          </div>
+          <div class="panel-body no-pad">
+            <div id="ul-alertas"><div class="empty-state">Carregando...</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IA Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        🤖 Consultoria IA — Recomendação do Dia
+        <button class="btn btn-sm btn-outline" onclick="carregarIA()">Atualizar</button>
+      </div>
+      <div class="panel-body">
+        <div id="ia-dash" class="ia-box">
+          <div class="ia-box-label">🤖 Aguardando análise...</div>
+          <div class="ia-box-text text-dim">Clique em "Atualizar" para gerar recomendações com base nos dados do dia.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+/* Relógio */
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
+
+async function carregar() {
+  try {
+    const [vendas, resumo, alertas, clientes] = await Promise.all([
+      get(API.vendas),
+      get(`${API.lancamentos}/resumo/hoje`),
+      get(`${API.produtos}/alerta`),
+      get(API.clientes),
+    ]);
+
+    /* Stat cards */
+    const vendasHoje = (vendas||[]).filter(v => {
+      const d = new Date(v.dataVenda); const hoje = new Date();
+      return d.toDateString() === hoje.toDateString();
+    });
+    const totalVendasHoje = vendasHoje.reduce((s,v) => s + (v.totalVenda||0), 0);
+    document.getElementById('d-vendas').textContent    = brl(totalVendasHoje);
+    document.getElementById('d-vendas-qt').textContent = vendasHoje.length + ' transações hoje';
+
+    const saldo = (resumo.saldo||0);
+    document.getElementById('d-saldo').textContent     = brl(saldo);
+    document.getElementById('d-saldo').className       = 'stat-value ' + (saldo>=0?'green':'red');
+    document.getElementById('d-saldo-info').textContent= `Ent: ${brl(resumo.entradas||0)} / Saí: ${brl(resumo.saidas||0)}`;
+
+    document.getElementById('d-alerta').textContent    = alertas.length;
+    document.getElementById('d-alerta').className      = 'stat-value ' + (alertas.length>0?'yellow':'green');
+
+    const vip = (clientes||[]).filter(c => c.segmento==='VIP').length;
+    document.getElementById('d-clientes').textContent  = clientes.length;
+    document.getElementById('d-clientes-vip').textContent = vip + ' clientes VIP';
+
+    /* Caixa hoje */
+    document.getElementById('cx-e').textContent   = brl(resumo.entradas||0);
+    document.getElementById('cx-s').textContent   = brl(resumo.saidas||0);
+    document.getElementById('cx-sal').textContent = brl(saldo);
+    document.getElementById('cx-sal').className   = 'stat-value ' + (saldo>=0?'green':'red');
+
+    /* Últimas vendas */
+    const ultimas = (vendas||[]).slice(0,6);
+    document.getElementById('ul-vendas').innerHTML = ultimas.length === 0
+      ? '<div class="empty-state">Nenhuma venda registrada.</div>'
+      : ultimas.map(v => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-size:13px;font-weight:500;">${v.nomeCliente||'Consumidor Final'}</div>
+            <div class="text-dim" style="font-size:11px;">${dt(v.dataVenda)} · ${v.formaPagamento||'—'}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="text-green text-mono" style="font-size:13px;">${brl(v.totalVenda)}</span>
+            ${badgeStatus(v.status||'CONCLUIDA')}
+          </div>
+        </div>`).join('');
+
+    /* Alertas estoque */
+    document.getElementById('ul-alertas').innerHTML = alertas.length === 0
+      ? '<div class="empty-state">Estoque em dia ✓</div>'
+      : alertas.slice(0,5).map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:13px;">${p.nome}</span>
+          <span class="badge ${p.quantidade===0?'badge-red':'badge-yellow'}">${p.quantidade}/${p.quantidadeMinima} ${p.unidade}</span>
+        </div>`).join('');
+
+  } catch(e) {
+    toast('Erro ao conectar na API. Verifique se o servidor está rodando.', 'err');
+  }
+}
+
+async function carregarIA() {
+  const box = document.getElementById('ia-dash');
+  box.innerHTML = '<div class="ia-box-label">🤖 Analisando...</div><div class="ia-box-text text-dim"><span class="spinner"></span>A IA está processando os dados...</div>';
+  try {
+    const negocios = await get(API.negocios);
+    if (!negocios.length) { box.innerHTML = '<div class="ia-box-label">🤖 IA</div><div class="ia-box-text text-dim">Cadastre um negócio para receber recomendações.</div>'; return; }
+    const texto = await get(`${API.negocios}/${negocios[0].id}/insight`);
+    box.innerHTML = `<div class="ia-box-label">🤖 Recomendação IA · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div><div class="ia-box-text">${texto}</div>`;
+  } catch(e) {
+    box.innerHTML = '<div class="ia-box-label text-red">Erro na IA</div><div class="ia-box-text text-dim">Verifique a chave Groq no application.properties.</div>';
+  }
+}
+
+carregar();
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Painel de Gerência</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* grid de cards de negócios */
+  .biz-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:16px;
+  }
+  .biz-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:20px;
+    transition:all .2s;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+  }
+  .biz-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:var(--emerald);opacity:0;transition:opacity .2s;
+  }
+  .biz-card:hover{border-color:rgba(0,200,150,.35);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+  .biz-card:hover::before{opacity:1;}
+  .biz-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+  .biz-icon{
+    width:40px;height:40px;border-radius:8px;
+    background:var(--emerald-dim);border:1px solid rgba(0,200,150,.2);
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+  }
+  .biz-actions{display:flex;gap:6px;}
+  .biz-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;}
+  .biz-tipo{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:10px;}
+  .biz-email{font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:6px;}
+  .biz-footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px;}
+  .biz-footer .btn{flex:1;justify-content:center;}
+
+  /* empty state grande */
+  .empty-big{
+    text-align:center;padding:80px 20px;color:var(--text-dim);
+  }
+  .empty-big .icon{font-size:48px;margin-bottom:16px;display:block;}
+  .empty-big p{font-size:14px;margin-bottom:20px;}
+
+  /* stat strip */
+  .admin-stats{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;
+  }
+  @media(max-width:600px){.admin-stats{grid-template-columns:1fr 1fr;}.biz-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Painel de Gerência</small></div>
+  <div class="nav-group-label">Gerência</div>
+  <a class="nav-item active" href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="sidebar-footer">
+    <!-- preenchido por api.js -->
+    <p>SmartBiz v1.0 · Uniube 2026</p>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">🏢</span>Painel de Gerência</div>
+    <div class="topbar-right">
+      <span class="badge-online"><span class="dot-live"></span>ADMIN</span>
+      <span id="clock" class="text-mono" style="font-size:11px;color:var(--text-dim)"></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats gerais -->
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-label">Negócios Cadastrados</div>
+        <div class="stat-value green" id="s-total">—</div>
+        <div class="stat-delta">negócios ativos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tipos Diferentes</div>
+        <div class="stat-value" id="s-tipos">—</div>
+        <div class="stat-delta">categorias</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Usuários Vinculados</div>
+        <div class="stat-value" id="s-users">—</div>
+        <div class="stat-delta">e-mails ativos</div>
+      </div>
+    </div>
+
+    <!-- Cabeçalho + busca -->
+    <div class="panel">
+      <div class="panel-header">
+        Negócios Cadastrados
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="search-input" class="form-input" placeholder="Buscar negócio..."
+            style="width:200px;padding:5px 10px;font-size:12px;" oninput="filtrar()">
+          <a href="admin-cadastro.html" class="btn btn-primary btn-sm">+ Cadastrar</a>
+          <button class="btn btn-ghost btn-sm" onclick="carregar()">↻</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="biz-grid-wrap" class="biz-grid">
+          <div class="empty-state">Carregando negócios...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+/* Relógio */
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
+
+let todosNegocios = [];
+
+const TIPO_ICON = {
+  'Padaria':'🥐','Barbearia':'✂️','Loja':'🛒','Restaurante':'🍽️',
+  'Farmácia':'💊','Mercado':'🛒','Academia':'💪','Café':'☕',
+  'Pet Shop':'🐾','Salão':'💅','Clínica':'🏥','Oficina':'🔧',
+};
+function iconeTipo(tipo) {
+  const t = tipo || '';
+  for (const [k,v] of Object.entries(TIPO_ICON)) {
+    if (t.toLowerCase().includes(k.toLowerCase())) return v;
+  }
+  return '🏪';
+}
+
+async function carregar() {
+  try {
+    todosNegocios = await get(API.negocios) || [];
+    renderCards(todosNegocios);
+
+    // Stats
+    document.getElementById('s-total').textContent  = todosNegocios.length;
+    const tipos = new Set(todosNegocios.map(n => n.tipo)).size;
+    document.getElementById('s-tipos').textContent  = tipos;
+    document.getElementById('s-users').textContent  = todosNegocios.filter(n => n.emailVinculado).length;
+  } catch(e) {
+    toast('Erro ao carregar negócios: ' + e.message, 'err');
+    document.getElementById('biz-grid-wrap').innerHTML =
+      '<div class="empty-state">Erro ao conectar na API.</div>';
+  }
+}
+
+function filtrar() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const filtrados = todosNegocios.filter(n =>
+    (n.nome||'').toLowerCase().includes(q) ||
+    (n.tipo||'').toLowerCase().includes(q) ||
+    (n.emailVinculado||'').toLowerCase().includes(q)
+  );
+  renderCards(filtrados);
+}
+
+function renderCards(lista) {
+  const wrap = document.getElementById('biz-grid-wrap');
+  if (!lista.length) {
+    wrap.innerHTML = `
+      <div class="empty-big" style="grid-column:1/-1;">
+        <span class="icon">🏪</span>
+        <p>Nenhum negócio cadastrado ainda.</p>
+        <a href="admin-cadastro.html" class="btn btn-primary">+ Cadastrar Primeiro Negócio</a>
+      </div>`;
+    return;
+  }
+  wrap.innerHTML = lista.map(n => `
+    <div class="biz-card" onclick="entrarNegocio('${n.id}','${(n.nome||'').replace(/'/g,"\\'")}','${(n.emailVinculado||'').replace(/'/g,"\\'")}')">
+      <div class="biz-card-top">
+        <div class="biz-icon">${iconeTipo(n.tipo)}</div>
+        <div class="biz-actions" onclick="event.stopPropagation()">
+          <a href="admin-cadastro.html?id=${n.id}" class="btn btn-ghost btn-sm" title="Editar">✏️</a>
+          <button class="btn btn-danger btn-sm" onclick="excluir('${n.id}','${(n.nome||'').replace(/'/g,"\\'")}')" title="Excluir">🗑</button>
+        </div>
+      </div>
+      <div class="biz-name">${n.nome || '—'}</div>
+      <div class="biz-tipo">${n.tipo || '—'}</div>
+      <div class="biz-email">
+        <span style="color:var(--emerald);">✉</span>
+        <span>${n.emailVinculado || 'Sem e-mail vinculado'}</span>
+      </div>
+      <div class="biz-footer">
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();entrarNegocio('${n.id}','${(n.nome||'').replace(/'/g,"\\'")}','${(n.emailVinculado||'').replace(/'/g,"\\'")}')">
+          Acessar Dashboard →
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function entrarNegocio(id, nome, emailVinculado) {
+  // Passa também o emailVinculado — o backend usa este e-mail para
+  // filtrar os dados (clientes, produtos, vendas etc.) do negócio correto
+  setViewingBusiness(id, nome, emailVinculado);
+  window.location.href = 'index.html';
+}
+
+async function excluir(id, nome) {
+  if (!confirm(`Excluir o negócio "${nome}"? Esta ação não pode ser desfeita.`)) return;
+  try {
+    await del(`${API.negocios}/${id}`);
+    toast('Negócio excluído com sucesso.');
+    carregar();
+  } catch(e) {
+    toast('Erro ao excluir: ' + e.message, 'err');
+  }
+}
+
+carregar();
+</script>
+</body>
+</html>

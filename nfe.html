@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · NF-e</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.nfe-doc {
+  background:#040908;border:1px solid rgba(0,200,150,.25);border-radius:4px;
+  font-family:'DM Mono',monospace;font-size:12px;padding:24px;display:none;
+}
+.nfe-doc.show { display:block;animation:fadein .3s ease; }
+.nfe-doc-title { color:var(--emerald);font-size:14px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px;display:flex;justify-content:space-between;align-items:center; }
+.nfe-row { display:flex;justify-content:space-between;padding:3px 0;color:var(--text-mid); }
+.nfe-row.total { color:#fff;border-top:1px solid var(--border);padding-top:8px;margin-top:6px;font-size:14px; }
+.nfe-chave { margin-top:14px;font-size:9px;color:rgba(0,200,150,.35);letter-spacing:1px;word-break:break-all;border-top:1px dashed var(--border);padding-top:10px; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gestão Inteligente</small></div>
+  <div class="nav-group-label" data-admin-only>Gerência</div>
+  <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="nav-group-label">Principal</div>
+  <a class="nav-item" href="index.html"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
+  <div class="nav-group-label">Operacional</div>
+  <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
+  <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
+  <a class="nav-item" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
+  <div class="nav-group-label">Clientes & Fiscal</div>
+  <a class="nav-item" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
+  <a class="nav-item active" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
+  <a class="nav-item" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">📄</span>Notas Fiscais Eletrônicas</div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-ghost" onclick="carregar()">↻ Atualizar</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="two-col">
+
+      <div>
+        <div class="panel">
+          <div class="panel-header">Emitir NF-e de Venda (PDV)</div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Selecione uma venda concluída no PDV para gerar a NF-e automaticamente com todos os itens.</p>
+            <div class="form-group">
+              <label class="form-label">Venda *</label>
+              <select class="form-select" id="sel-venda">
+                <option value="">— Selecionar venda —</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">CNPJ do Emitente *</label><input class="form-input" id="nfe-cnpj" placeholder="00.000.000/0001-00"></div>
+            <div class="form-group"><label class="form-label">Nome do Emitente *</label><input class="form-input" id="nfe-emit-nome" placeholder="ex: Padaria São João LTDA"></div>
+            <div class="form-group"><label class="form-label">Endereço do Emitente</label><input class="form-input" id="nfe-emit-end" placeholder="Rua, número, bairro, cidade/UF"></div>
+            <button class="btn btn-primary btn-full" id="btn-emit-venda" onclick="emitirDeVenda()">Emitir NF-e da Venda</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">Emitir NF-e Avulsa / NFS-e</div>
+          <div class="panel-body">
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Tipo</label>
+                <select class="form-select" id="av-tipo"><option value="NF-e">NF-e (produto)</option><option value="NFS-e">NFS-e (serviço)</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">CNPJ Emitente *</label><input class="form-input" id="av-cnpj" placeholder="00.000.000/0001-00"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Nome Emitente *</label><input class="form-input" id="av-emit-nome" placeholder="Razão Social"></div>
+              <div class="form-group"><label class="form-label">CPF Destinatário</label><input class="form-input" id="av-cpf-dest" placeholder="000.000.000-00"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Nome Destinatário</label><input class="form-input" id="av-dest-nome" placeholder="ex: Maria da Silva"></div>
+            <div style="margin:14px 0 6px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;">Itens da Nota</div>
+            <div id="av-itens"></div>
+            <button class="btn btn-ghost btn-full" style="margin-bottom:12px;" onclick="addItemAvulso()">+ Adicionar item</button>
+            <div class="form-group"><label class="form-label">Descontos (R$)</label><input class="form-input" id="av-desc" type="number" step="0.01" min="0" value="0"></div>
+            <button class="btn btn-primary btn-full" id="btn-emit-av" onclick="emitirAvulsa()">Emitir NF-e Avulsa</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div id="nfe-resultado" class="nfe-doc">
+          <div class="nfe-doc-title"><span>DOCUMENTO FISCAL ELETRÔNICO</span><span class="badge badge-green" id="nfe-tipo-badge">NF-e</span></div>
+          <div id="nfe-corpo"></div>
+          <div class="nfe-chave" id="nfe-chave"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">Histórico de Notas <span id="nfe-count" style="color:var(--text-dim);font-size:9px;"></span></div>
+          <div class="panel-body no-pad table-wrap">
+            <table>
+              <thead><tr><th>Nº</th><th>Tipo</th><th>Emitente</th><th>Destinatário</th><th>Total</th><th>Emissão</th><th>Status</th><th></th></tr></thead>
+              <tbody id="nfe-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+let itensAvulsos = 0;
+document.addEventListener('DOMContentLoaded', () => {
+  maskCnpj(document.getElementById('nfe-cnpj'));
+  maskCnpj(document.getElementById('av-cnpj'));
+  maskCpf(document.getElementById('av-cpf-dest'));
+  addItemAvulso();
+});
+
+async function carregar() {
+  try {
+    const vendas = await get(API.vendas);
+    const sel = document.getElementById('sel-venda');
+    sel.innerHTML = '<option value="">— Selecionar venda —</option>' +
+      vendas.filter(v=>v.status==='CONCLUIDA').map(v =>
+        `<option value="${v.id}">#${v.id.slice(-6).toUpperCase()} · ${v.nomeCliente||'Consumidor'} · ${brl(v.totalVenda)} · ${dtd(v.dataVenda)}</option>`
+      ).join('');
+  } catch {}
+  try {
+    const notas = await get(API.nfe);
+    document.getElementById('nfe-count').textContent = notas.length + ' notas';
+    const body = document.getElementById('nfe-body');
+    if (!notas.length) { body.innerHTML='<tr><td colspan="8" class="empty-state">Nenhuma nota emitida.</td></tr>'; return; }
+    body.innerHTML = notas.map(n => `<tr>
+      <td class="text-mono">${n.numero}</td>
+      <td>${badgeStatus(n.tipo||'NF-e')}</td>
+      <td style="font-size:12px;">${n.emitenteNome||'—'}<br><span class="text-dim">${n.emitenteCnpj||''}</span></td>
+      <td style="font-size:12px;">${n.destinatarioNome||'Consumidor Final'}<br><span class="text-dim">${n.destinatarioCpf||''}</span></td>
+      <td class="text-mono text-green">${brl(n.valorTotal)}</td>
+      <td class="text-dim" style="font-size:11px;">${dt(n.dataEmissao)}</td>
+      <td>${badgeStatus(n.status)}</td>
+      <td>${n.status==='EMITIDA'?`<button class="btn btn-sm btn-danger" onclick="cancelar('${n.id}')">Cancelar</button>`:''}</td>
+    </tr>`).join('');
+  } catch(e) { toast('Erro ao carregar NF-e: '+e.message,'err'); }
+}
+
+function addItemAvulso() {
+  const i = ++itensAvulsos;
+  const div = document.createElement('div');
+  div.id = `av-item-${i}`;
+  div.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:12px;margin-bottom:8px;';
+  div.innerHTML = `
+    <div class="form-row-3">
+      <div class="form-group" style="margin:0"><label class="form-label">Descrição</label><input class="form-input" id="av-i-desc-${i}" placeholder="Produto/Serviço"></div>
+      <div class="form-group" style="margin:0"><label class="form-label">Qtd</label><input class="form-input" id="av-i-qty-${i}" type="number" value="1" min="1" style="width:70px;"></div>
+      <div class="form-group" style="margin:0"><label class="form-label">Valor unit. (R$)</label><input class="form-input" id="av-i-val-${i}" type="number" step="0.01" min="0" placeholder="0,00"></div>
+    </div>
+    <div style="text-align:right;margin-top:6px;"><button class="btn btn-sm btn-danger" onclick="document.getElementById('av-item-${i}').remove()">Remover</button></div>`;
+  document.getElementById('av-itens').appendChild(div);
+}
+
+function coletarItensAvulsos() {
+  const itens = [];
+  document.querySelectorAll('[id^="av-item-"]').forEach(el => {
+    const idx = el.id.split('-').pop();
+    const desc = document.getElementById(`av-i-desc-${idx}`)?.value.trim();
+    const qty  = parseInt(document.getElementById(`av-i-qty-${idx}`)?.value)||1;
+    const val  = parseFloat(document.getElementById(`av-i-val-${idx}`)?.value)||0;
+    if (desc && val > 0) itens.push({ descricao:desc, quantidade:qty, unidade:'UN', valorUnitario:val, subtotal:qty*val });
+  });
+  return itens;
+}
+
+function mostrarNota(nf) {
+  const el = document.getElementById('nfe-resultado');
+  document.getElementById('nfe-tipo-badge').textContent = nf.tipo||'NF-e';
+  document.getElementById('nfe-corpo').innerHTML = `
+    <div class="nfe-row"><span>Número / Série:</span><span>${nf.numero} / ${nf.serie}</span></div>
+    <div class="nfe-row"><span>Emitente:</span><span>${nf.emitenteNome} — ${nf.emitenteCnpj}</span></div>
+    <div class="nfe-row"><span>Destinatário:</span><span>${nf.destinatarioNome||'Consumidor Final'} ${nf.destinatarioCpf?'— '+nf.destinatarioCpf:''}</span></div>
+    <div class="nfe-row"><span>Emissão:</span><span>${dt(nf.dataEmissao)}</span></div>
+    <hr style="border:none;border-top:1px dashed var(--border);margin:10px 0;">
+    ${(nf.itens||[]).map(i=>`<div class="nfe-row"><span>${i.descricao} × ${i.quantidade} ${i.unidade}</span><span>${brl(i.subtotal)}</span></div>`).join('')}
+    <div class="nfe-row" style="margin-top:10px;"><span>Subtotal:</span><span>${brl(nf.subtotal)}</span></div>
+    ${nf.descontos>0?`<div class="nfe-row"><span>Descontos:</span><span>-${brl(nf.descontos)}</span></div>`:''}
+    <div class="nfe-row"><span>ICMS (12%):</span><span>${brl(nf.icms)}</span></div>
+    <div class="nfe-row"><span>PIS (0,65%):</span><span>${brl(nf.pis)}</span></div>
+    <div class="nfe-row"><span>COFINS (3%):</span><span>${brl(nf.cofins)}</span></div>
+    <div class="nfe-row total"><span>VALOR TOTAL:</span><span style="color:var(--emerald)">${brl(nf.valorTotal)}</span></div>`;
+  document.getElementById('nfe-chave').innerHTML = 'Chave de acesso: ' + (nf.chaveAcesso||'').match(/.{1,4}/g).join(' ');
+  el.classList.add('show');
+  el.scrollIntoView({ behavior:'smooth' });
+}
+
+async function emitirDeVenda() {
+  const vendaId = document.getElementById('sel-venda').value;
+  const cnpj    = document.getElementById('nfe-cnpj').value.trim();
+  const nome    = document.getElementById('nfe-emit-nome').value.trim();
+  const end     = document.getElementById('nfe-emit-end').value.trim();
+  if (!vendaId||!cnpj||!nome) { toast('Selecione a venda e preencha os dados do emitente.','err'); return; }
+  const btn=document.getElementById('btn-emit-venda'); const restore=spin(btn,'Emitindo...');
+  try {
+    const nf = await post(`${API.nfe}/venda/${vendaId}`, { cnpj, nome, endereco:end });
+    toast('✓ NF-e emitida! Nº '+nf.numero);
+    mostrarNota(nf); carregar();
+  } catch(e) { toast('Erro: '+e.message,'err'); }
+  finally { restore(); }
+}
+
+async function emitirAvulsa() {
+  const tipo    = document.getElementById('av-tipo').value;
+  const cnpj    = document.getElementById('av-cnpj').value.trim();
+  const emNome  = document.getElementById('av-emit-nome').value.trim();
+  const cpfDest = document.getElementById('av-cpf-dest').value.trim();
+  const destNome= document.getElementById('av-dest-nome').value.trim();
+  const desc    = parseFloat(document.getElementById('av-desc').value)||0;
+  const itens   = coletarItensAvulsos();
+  if (!cnpj||!emNome) { toast('Preencha CNPJ e nome do emitente.','err'); return; }
+  if (!itens.length)   { toast('Adicione ao menos um item.','err'); return; }
+  const btn=document.getElementById('btn-emit-av'); const restore=spin(btn,'Emitindo...');
+  try {
+    const nf = await post(`${API.nfe}/avulsa`, { tipo, emitenteCnpj:cnpj, emitenteNome:emNome, destinatarioCpf:cpfDest||null, destinatarioNome:destNome||null, itens, descontos:desc });
+    toast('✓ NF-e emitida! Nº '+nf.numero);
+    mostrarNota(nf); carregar();
+  } catch(e) { toast('Erro: '+e.message,'err'); }
+  finally { restore(); }
+}
+
+async function cancelar(id) {
+  if (!confirm('Cancelar esta NF-e?')) return;
+  try { await patch(`${API.nfe}/${id}/cancelar`); toast('✓ NF-e cancelada.'); carregar(); }
+  catch(e) { toast('Erro: '+e.message,'err'); }
+}
+
+carregar();
+</script>
+</body>
+</html>

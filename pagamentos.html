@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Pagamentos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.pag-method { border:1px solid var(--border);border-radius:4px;padding:18px;cursor:pointer;transition:all .15s;text-align:center;user-select:none; }
+.pag-method:hover { border-color:var(--emerald); }
+.pag-method.selected { border-color:var(--emerald);background:rgba(0,200,150,.06); }
+.pag-method-icon { font-size:28px;margin-bottom:6px; }
+.pag-method-name { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase; }
+.pag-method.selected .pag-method-name { color:var(--emerald); }
+.pix-qr { background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center;margin:14px 0; }
+.confirm-box { background:rgba(0,200,150,.05);border:1px solid var(--border);border-radius:4px;padding:18px;display:none; }
+.confirm-box.show { display:block;animation:fadein .3s ease; }
+.confirm-row { display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(0,200,150,.06); }
+.confirm-row:last-child { border:none; }
+.confirm-total { font-size:16px;font-weight:600;color:var(--emerald);border-top:1px solid var(--border);padding-top:10px;margin-top:6px; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gestão Inteligente</small></div>
+  <div class="nav-group-label" data-admin-only>Gerência</div>
+  <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="nav-group-label">Principal</div>
+  <a class="nav-item" href="index.html"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
+  <div class="nav-group-label">Operacional</div>
+  <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
+  <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
+  <a class="nav-item" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
+  <div class="nav-group-label">Clientes & Fiscal</div>
+  <a class="nav-item" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
+  <a class="nav-item" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
+  <a class="nav-item active" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">💳</span>Integração com Pagamentos</div>
+  </div>
+
+  <div class="content">
+    <div class="two-col">
+      <!-- Processador de pagamento -->
+      <div class="panel">
+        <div class="panel-header">Processar Cobrança</div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label class="form-label">Descrição da cobrança *</label>
+            <input class="form-input" id="p-desc" placeholder="ex: Corte de cabelo, Entrega de pedido">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Valor (R$) *</label>
+              <input class="form-input" id="p-val" type="number" step="0.01" min="0.01" placeholder="0,00" oninput="atualizarTotal()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">CPF do cliente (opcional)</label>
+              <input class="form-input" id="p-cpf" placeholder="000.000.000-00">
+            </div>
+          </div>
+
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin:16px 0 10px;">Forma de Pagamento</div>
+          <div class="three-col" style="gap:10px;margin-bottom:16px;">
+            <div class="pag-method selected" id="pm-pix" onclick="selPag('pix')">
+              <div class="pag-method-icon">📱</div>
+              <div class="pag-method-name">PIX</div>
+            </div>
+            <div class="pag-method" id="pm-debito" onclick="selPag('debito')">
+              <div class="pag-method-icon">💳</div>
+              <div class="pag-method-name">Débito</div>
+            </div>
+            <div class="pag-method" id="pm-credito" onclick="selPag('credito')">
+              <div class="pag-method-icon">💳</div>
+              <div class="pag-method-name">Crédito</div>
+            </div>
+            <div class="pag-method" id="pm-dinheiro" onclick="selPag('dinheiro')">
+              <div class="pag-method-icon">💵</div>
+              <div class="pag-method-name">Dinheiro</div>
+            </div>
+            <div class="pag-method" id="pm-boleto" onclick="selPag('boleto')">
+              <div class="pag-method-icon">📜</div>
+              <div class="pag-method-name">Boleto</div>
+            </div>
+          </div>
+
+          <!-- QR Code PIX (simulado) -->
+          <div id="pix-area" style="display:none;">
+            <div class="pix-qr">
+              <canvas id="pix-canvas" width="160" height="160"></canvas>
+            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:1px;">
+              Chave PIX: <span style="color:var(--emerald);" id="pix-key">—</span>
+            </div>
+          </div>
+
+          <!-- Parcelas (crédito) -->
+          <div id="credito-area" style="display:none;" class="form-group">
+            <label class="form-label">Número de parcelas</label>
+            <select class="form-select" id="p-parcelas">
+              <option value="1">À vista (1×)</option>
+              <option value="2">2× sem juros</option>
+              <option value="3">3× sem juros</option>
+              <option value="6">6× (1,99% a.m.)</option>
+              <option value="12">12× (1,99% a.m.)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary btn-full" id="btn-cobrar" onclick="processar()" style="margin-top:8px;">
+            Processar Pagamento
+          </button>
+        </div>
+      </div>
+
+      <!-- Confirmação e histórico -->
+      <div>
+        <div class="confirm-box" id="confirm-box">
+          <div class="nfe-doc-title" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:12px;">✓ PAGAMENTO CONFIRMADO</div>
+          <div id="confirm-corpo"></div>
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-header">Recebimentos Recentes</div>
+          <div class="panel-body no-pad" id="hist-pagamentos">
+            <div class="empty-state">Carregando...</div>
+          </div>
+        </div>
+
+        <!-- Taxas por método -->
+        <div class="panel">
+          <div class="panel-header">Comparativo de Taxas</div>
+          <div class="panel-body">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border);">
+                  <th style="padding:6px;text-align:left;color:var(--text-dim);">Método</th>
+                  <th style="padding:6px;text-align:right;color:var(--text-dim);">Taxa</th>
+                  <th style="padding:6px;text-align:right;color:var(--text-dim);">Liquidação</th>
+                  <th style="padding:6px;text-align:right;color:var(--text-dim);">Valor líquido*</th>
+                </tr>
+              </thead>
+              <tbody id="taxa-body"></tbody>
+            </table>
+            <div class="text-dim" style="font-size:10px;margin-top:8px;">*Calculado sobre o valor informado acima.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+let pagSel = 'pix';
+const TAXAS = [
+  { nome:'PIX',               tx:0,      dias:'Imediato',  id:'pix' },
+  { nome:'Débito',            tx:0.012,  dias:'1 dia útil',id:'debito' },
+  { nome:'Crédito à vista',   tx:0.024,  dias:'30 dias',   id:'credito' },
+  { nome:'Crédito parcelado', tx:0.035,  dias:'30/60/90d', id:'credito' },
+  { nome:'Boleto',            tx:2.99,   dias:'2 dias úteis', id:'boleto', fixed:true },
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  maskCpf(document.getElementById('p-cpf'));
+  atualizarTotal();
+  carregarHistorico();
+});
+
+function selPag(id) {
+  pagSel = id;
+  ['pix','debito','credito','dinheiro','boleto'].forEach(m => {
+    document.getElementById('pm-'+m).classList.toggle('selected', m===id);
+  });
+  document.getElementById('pix-area').style.display      = id==='pix'?'block':'none';
+  document.getElementById('credito-area').style.display  = id==='credito'?'block':'none';
+  atualizarTotal();
+  if (id==='pix') desenharQR();
+}
+
+function atualizarTotal() {
+  const val = parseFloat(document.getElementById('p-val').value)||0;
+  renderTaxas(val);
+}
+
+function renderTaxas(val) {
+  document.getElementById('taxa-body').innerHTML = TAXAS.map(t => {
+    const taxa = t.fixed ? t.tx : val * t.tx;
+    const liq  = val > 0 ? val - taxa : 0;
+    return `<tr style="border-bottom:1px solid rgba(0,200,150,.05);">
+      <td style="padding:7px 6px;">${t.nome}</td>
+      <td style="padding:7px 6px;text-align:right;color:var(--red);">${t.fixed?'R$'+t.tx.toFixed(2):(t.tx*100).toFixed(1)+'%'}</td>
+      <td style="padding:7px 6px;text-align:right;color:var(--text-dim);">${t.dias}</td>
+      <td style="padding:7px 6px;text-align:right;font-family:'DM Mono',monospace;color:var(--emerald);">${val>0?brl(liq):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function desenharQR() {
+  const canvas = document.getElementById('pix-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,160,160);
+  ctx.fillStyle='#000';
+  for (let i=0;i<20;i++) for(let j=0;j<20;j++) {
+    if (Math.random()>.5) ctx.fillRect(8+i*7,8+j*7,6,6);
+  }
+  // Corner squares
+  [[8,8],[8,118],[118,8]].forEach(([x,y]) => {
+    ctx.fillStyle='#000'; ctx.fillRect(x,y,28,28);
+    ctx.fillStyle='#fff'; ctx.fillRect(x+4,y+4,20,20);
+    ctx.fillStyle='#000'; ctx.fillRect(x+8,y+8,12,12);
+  });
+  document.getElementById('pix-key').textContent = '12345678000190';
+}
+
+async function processar() {
+  const desc = document.getElementById('p-desc').value.trim();
+  const val  = parseFloat(document.getElementById('p-val').value)||0;
+  const cpf  = document.getElementById('p-cpf').value.trim();
+  if (!desc||val<=0) { toast('Preencha descrição e valor.','err'); return; }
+
+  const nomes = {pix:'PIX',debito:'Cartão de Débito',credito:'Cartão de Crédito',dinheiro:'Dinheiro',boleto:'Boleto'};
+  const btn = document.getElementById('btn-cobrar');
+  const restore = spin(btn,'Processando...');
+
+  await new Promise(r => setTimeout(r, 1200)); // simula latência
+
+  const txInfo  = TAXAS.find(t=>t.id===pagSel) || TAXAS[0];
+  const taxaVal = txInfo.fixed ? txInfo.tx : val * txInfo.tx;
+  const liquido = val - taxaVal;
+  const tid     = Date.now().toString(36).toUpperCase();
+  const agora   = new Date().toLocaleString('pt-BR');
+
+  // Lança no caixa
+  try {
+    await post(API.lancamentos, {
+      tipo:'ENTRADA', descricao: desc + (cpf?' — CPF '+cpf:''),
+      valor:val, formaPagamento:nomes[pagSel], categoria:'Vendas', origem:'SISTEMA'
+    });
+  } catch {}
+
+  const box = document.getElementById('confirm-box');
+  document.getElementById('confirm-corpo').innerHTML = `
+    <div class="confirm-row"><span>Descrição</span><span>${desc}</span></div>
+    <div class="confirm-row"><span>Valor cobrado</span><span style="color:var(--emerald)">${brl(val)}</span></div>
+    <div class="confirm-row"><span>Taxa (${txInfo.fixed?'R$'+txInfo.tx.toFixed(2):(txInfo.tx*100).toFixed(1)+'%'})</span><span style="color:var(--red)">-${brl(taxaVal)}</span></div>
+    <div class="confirm-row"><span>Valor líquido</span><span style="color:var(--emerald)">${brl(liquido)}</span></div>
+    <div class="confirm-row"><span>Forma</span><span>${nomes[pagSel]}</span></div>
+    ${cpf?`<div class="confirm-row"><span>CPF do cliente</span><span>${cpf}</span></div>`:''}
+    <div class="confirm-row"><span>Horário</span><span>${agora}</span></div>
+    <div class="confirm-row"><span>ID da transação</span><span class="text-mono" style="font-size:10px;color:rgba(0,200,150,.5);">${tid}</span></div>`;
+  box.classList.add('show');
+  box.scrollIntoView({ behavior:'smooth' });
+
+  toast('✓ Pagamento de '+brl(val)+' via '+nomes[pagSel]+' confirmado!');
+  document.getElementById('p-desc').value='';
+  document.getElementById('p-val').value='';
+  restore();
+  carregarHistorico();
+}
+
+async function carregarHistorico() {
+  try {
+    const lista = (await get(`${API.lancamentos}/hoje`)).filter(l=>l.tipo==='ENTRADA').reverse().slice(0,10);
+    const el = document.getElementById('hist-pagamentos');
+    if (!lista.length) { el.innerHTML='<div class="empty-state">Nenhum recebimento hoje.</div>'; return; }
+    el.innerHTML = lista.map(l => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(0,200,150,.05);">
+        <div>
+          <div style="font-size:13px;">${l.descricao}</div>
+          <div class="text-dim" style="font-size:10px;">${l.formaPagamento||'—'} · ${dt(l.data)}</div>
+        </div>
+        <span class="text-mono text-green">${brl(l.valor)}</span>
+      </div>`).join('');
+  } catch {}
+}
+
+// Init
+selPag('pix');
+renderTaxas(0);
+</script>
+</body>
+</html>

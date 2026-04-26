@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · PDV</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.pdv-wrap { display:grid; grid-template-columns:1fr 380px; gap:20px; align-items:start; }
+.produto-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.prod-card {
+  background:var(--surface2); border:1px solid var(--border); border-radius:4px;
+  padding:16px; cursor:pointer; transition:all .15s; text-align:center; user-select:none;
+}
+.prod-card:hover { border-color:var(--emerald); background:rgba(0,200,150,.05); transform:translateY(-1px); }
+.prod-card.no-stock { opacity:.4; cursor:not-allowed; }
+.prod-card.no-stock:hover { transform:none; border-color:var(--border); background:var(--surface2); }
+.prod-nome { font-size:13px; font-weight:500; margin-bottom:4px; }
+.prod-preco { font-family:'DM Mono',monospace; font-size:18px; color:var(--emerald); }
+.prod-estoque { font-size:11px; color:var(--text-dim); margin-top:4px; }
+.prod-cat { font-size:10px; color:var(--text-dim); margin-bottom:6px; font-family:'DM Mono',monospace; letter-spacing:1px; text-transform:uppercase; }
+
+.carrinho { background:var(--ink2); border:1px solid var(--border); border-radius:4px; overflow:hidden; position:sticky; top:76px; }
+.carrinho-header { background:var(--surface2); padding:14px 18px; border-bottom:1px solid var(--border); font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--emerald); text-transform:uppercase; }
+.cart-item { display:flex; align-items:center; gap:8px; padding:10px 16px; border-bottom:1px solid rgba(0,200,150,.05); font-size:13px; }
+.cart-nome { flex:1; }
+.cart-sub { font-family:'DM Mono',monospace; color:var(--emerald); font-size:12px; white-space:nowrap; }
+.cart-total { padding:14px 18px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); }
+.cart-total-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; }
+.cart-total-val { font-family:'Syne',monospace; font-size:30px; font-weight:800; color:var(--emerald); }
+.ticket { background:rgba(0,200,150,.05); border:1px solid var(--border); margin:0 16px 16px; border-radius:3px; padding:14px; display:none; }
+.ticket.show { display:block; animation:fadein .3s ease; }
+.ticket-title { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--emerald); margin-bottom:8px; text-transform:uppercase; }
+.ticket-row { display:flex; justify-content:space-between; font-size:12px; padding:2px 0; }
+.ticket-total { border-top:1px solid var(--border); margin-top:8px; padding-top:8px; font-weight:600; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gestão Inteligente</small></div>
+  <div class="nav-group-label" data-admin-only>Gerência</div>
+  <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="nav-group-label">Principal</div>
+  <a class="nav-item" href="index.html"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
+  <div class="nav-group-label">Operacional</div>
+  <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
+  <a class="nav-item active" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
+  <a class="nav-item" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
+  <div class="nav-group-label">Clientes & Fiscal</div>
+  <a class="nav-item" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
+  <a class="nav-item" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
+  <a class="nav-item" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">🛒</span>PDV — Frente de Caixa</div>
+    <div class="topbar-right">
+      <input class="form-input" id="busca-prod" placeholder="🔍 Buscar produto ou código..." style="width:260px;padding:7px 12px;" oninput="filtrarProdutos()">
+      <button class="btn btn-sm btn-ghost" onclick="carregarProdutos()">↻</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="pdv-wrap">
+
+      <!-- Grade de produtos -->
+      <div>
+        <!-- Filtro de categoria -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;" id="cats"></div>
+        <div class="produto-grid" id="prod-grid">
+          <div class="empty-state" style="grid-column:1/-1;">Carregando produtos...</div>
+        </div>
+      </div>
+
+      <!-- Carrinho -->
+      <div class="carrinho">
+        <div class="carrinho-header">🛒 Carrinho de Compras</div>
+
+        <!-- Identificação por CPF -->
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+          <label class="form-label">CPF do cliente (opcional)</label>
+          <div class="gap-8">
+            <input class="form-input" id="pdv-cpf" placeholder="000.000.000-00" style="flex:1;">
+            <button class="btn btn-sm btn-ghost" onclick="buscarClientePDV()">Buscar</button>
+          </div>
+          <div id="pdv-cliente-info" style="font-size:11px;color:var(--emerald);margin-top:4px;min-height:14px;"></div>
+        </div>
+
+        <div style="min-height:160px;" id="cart-items">
+          <div class="empty-state">Toque em um produto para adicionar.</div>
+        </div>
+
+        <!-- Desconto -->
+        <div style="padding:8px 16px;border-top:1px solid var(--border);">
+          <div class="form-row">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Desconto (R$)</label>
+              <input class="form-input" id="pdv-desc" type="number" step="0.01" min="0" value="0" oninput="recalcular()">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Pagamento</label>
+              <select class="form-select" id="pdv-pag">
+                <option>PIX</option><option>Dinheiro</option>
+                <option>Cartão de Débito</option><option>Cartão de Crédito</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="cart-total">
+          <div class="cart-total-label">Total</div>
+          <div class="cart-total-val" id="cart-total">R$0,00</div>
+        </div>
+
+        <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-primary btn-full" id="btn-vender" onclick="finalizarVenda()" disabled>Finalizar Venda</button>
+          <button class="btn btn-ghost btn-full" onclick="limparCarrinho()">Limpar Carrinho</button>
+        </div>
+
+        <div class="ticket" id="ticket">
+          <div class="ticket-title">✓ Venda Registrada</div>
+          <div id="ticket-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histórico de vendas do dia -->
+    <div class="panel" style="margin-top:20px;">
+      <div class="panel-header">Vendas do Dia <button class="btn btn-sm btn-ghost" onclick="carregarVendas()">↻</button></div>
+      <div class="panel-body no-pad table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Pagamento</th><th>Horário</th><th>Status</th><th></th></tr></thead>
+          <tbody id="vendas-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+let produtos = [], carrinho = [], catSel = '';
+
+/* Máscara CPF */
+document.addEventListener('DOMContentLoaded', () => maskCpf(document.getElementById('pdv-cpf')));
+
+async function carregarProdutos() {
+  try {
+    produtos = await get(`${API.produtos}?apenasAtivos=true`);
+    const cats = [...new Set(produtos.map(p=>p.categoria).filter(Boolean))];
+    document.getElementById('cats').innerHTML =
+      `<button class="btn btn-sm ${catSel===''?'btn-primary':'btn-ghost'}" onclick="setcat('')">Todos</button>` +
+      cats.map(c => `<button class="btn btn-sm ${catSel===c?'btn-primary':'btn-ghost'}" onclick="setcat('${c}')">${c}</button>`).join('');
+    renderProdutos();
+  } catch(e) { toast('Erro ao carregar produtos: '+e.message,'err'); }
+}
+
+function setcat(c) { catSel=c; carregarProdutos(); }
+
+function filtrarProdutos() {
+  const q = document.getElementById('busca-prod').value.toLowerCase();
+  const lista = produtos.filter(p => p.nome.toLowerCase().includes(q)||(p.codigo||'').includes(q));
+  renderGrade(lista);
+}
+
+function renderProdutos() {
+  const lista = catSel ? produtos.filter(p=>p.categoria===catSel) : produtos;
+  renderGrade(lista);
+}
+
+function renderGrade(lista) {
+  const g = document.getElementById('prod-grid');
+  if (!lista.length) { g.innerHTML='<div class="empty-state" style="grid-column:1/-1;">Nenhum produto encontrado.</div>'; return; }
+  g.innerHTML = lista.filter(p=>p.precoVenda>0).map(p => {
+    const sem = p.quantidade === 0;
+    return `<div class="prod-card ${sem?'no-stock':''}" onclick="${sem?'void(0)':'addItem(\''+p.id+'\')'}">
+      ${p.categoria?`<div class="prod-cat">${p.categoria}</div>`:''}
+      <div class="prod-nome">${p.nome}</div>
+      <div class="prod-preco">${brl(p.precoVenda)}</div>
+      <div class="prod-estoque">${sem?'⚠ Sem estoque':p.quantidade+' em estoque'}</div>
+    </div>`;
+  }).join('');
+}
+
+function addItem(id) {
+  const p = produtos.find(x=>x.id===id);
+  if (!p||p.quantidade===0) return;
+  const ex = carrinho.find(i=>i.id===id);
+  if (ex) {
+    const emEstoque = p.quantidade;
+    if (ex.qty >= emEstoque) { toast('⚠ Estoque insuficiente!','err'); return; }
+    ex.qty++;
+  } else {
+    carrinho.push({ id:p.id, nome:p.nome, preco:p.precoVenda, qty:1, estoque:p.quantidade });
+  }
+  renderCarrinho();
+}
+
+function removeItem(id) {
+  const i = carrinho.find(x=>x.id===id);
+  if (!i) return;
+  if (i.qty>1) i.qty--;
+  else carrinho = carrinho.filter(x=>x.id!==id);
+  renderCarrinho();
+}
+
+function limparCarrinho() {
+  carrinho=[];
+  document.getElementById('ticket').classList.remove('show');
+  renderCarrinho();
+}
+
+function recalcular() {
+  const desc = parseFloat(document.getElementById('pdv-desc').value)||0;
+  const sub  = carrinho.reduce((s,i)=>s+i.preco*i.qty,0);
+  const total = Math.max(0, sub-desc);
+  document.getElementById('cart-total').textContent = brl(total);
+  document.getElementById('btn-vender').disabled = carrinho.length===0;
+}
+
+function renderCarrinho() {
+  const body = document.getElementById('cart-items');
+  if (!carrinho.length) {
+    body.innerHTML='<div class="empty-state">Toque em um produto para adicionar.</div>';
+    document.getElementById('btn-vender').disabled=true;
+    document.getElementById('cart-total').textContent='R$0,00';
+    return;
+  }
+  body.innerHTML = carrinho.map(i => `
+    <div class="cart-item">
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="removeItem('${i.id}')">−</button>
+        <span class="qty-num">${i.qty}</span>
+        <button class="qty-btn" onclick="addItem('${i.id}')">+</button>
+      </div>
+      <div class="cart-nome">${i.nome}</div>
+      <div class="cart-sub">${brl(i.preco*i.qty)}</div>
+    </div>`).join('');
+  recalcular();
+}
+
+async function buscarClientePDV() {
+  const cpf = document.getElementById('pdv-cpf').value.trim();
+  if (!cpf) return;
+  try {
+    const c = await get(`${API.clientes}/cpf/${cpf}`);
+    document.getElementById('pdv-cliente-info').textContent = `✓ ${c.nome} — ${c.segmento||'Regular'}`;
+  } catch {
+    document.getElementById('pdv-cliente-info').textContent = 'Cliente não encontrado. Será tratado como novo cliente.';
+  }
+}
+
+async function finalizarVenda() {
+  if (!carrinho.length) return;
+  const desc  = parseFloat(document.getElementById('pdv-desc').value)||0;
+  const pag   = document.getElementById('pdv-pag').value;
+  const cpf   = document.getElementById('pdv-cpf').value.trim();
+  const total = Math.max(0, carrinho.reduce((s,i)=>s+i.preco*i.qty,0)-desc);
+
+  const btn = document.getElementById('btn-vender');
+  const restore = spin(btn,'Registrando...');
+  try {
+    const body = {
+      itens: carrinho.map(i=>({produtoId:i.id, quantidade:i.qty})),
+      formaPagamento: pag,
+      clienteCpf: cpf||null,
+      desconto: desc,
+    };
+    const venda = await post(API.vendas, body);
+
+    // Ticket
+    const ticket = document.getElementById('ticket');
+    document.getElementById('ticket-body').innerHTML =
+      carrinho.map(i=>`<div class="ticket-row"><span>${i.nome} x${i.qty}</span><span>${brl(i.preco*i.qty)}</span></div>`).join('') +
+      (desc>0?`<div class="ticket-row text-dim"><span>Desconto</span><span>-${brl(desc)}</span></div>`:'') +
+      `<div class="ticket-row ticket-total text-green"><span>TOTAL</span><span>${brl(total)}</span></div>` +
+      `<div class="ticket-row text-dim" style="font-size:10px;margin-top:4px;"><span>${pag}</span><span>ID: ${venda.id.slice(-6).toUpperCase()}</span></div>`;
+    ticket.classList.add('show');
+
+    toast(`✓ Venda de ${brl(total)} registrada!`);
+    carrinho=[];
+    document.getElementById('pdv-cpf').value='';
+    document.getElementById('pdv-desc').value='0';
+    document.getElementById('pdv-cliente-info').textContent='';
+    renderCarrinho();
+    carregarProdutos();
+    carregarVendas();
+  } catch(e) { toast('Erro: '+e.message,'err'); }
+  finally { restore(); }
+}
+
+async function cancelarVenda(id) {
+  if (!confirm('Cancelar esta venda? O estoque será estornado.')) return;
+  try {
+    await patch(`${API.vendas}/${id}/cancelar`);
+    toast('✓ Venda cancelada e estoque estornado.');
+    carregarVendas();
+  } catch(e) { toast('Erro: '+e.message,'err'); }
+}
+
+async function carregarVendas() {
+  try {
+    const vendas = (await get(API.vendas)).slice(0,20);
+    const body = document.getElementById('vendas-body');
+    if (!vendas.length) { body.innerHTML='<tr><td colspan="8" class="empty-state">Nenhuma venda ainda.</td></tr>'; return; }
+    body.innerHTML = vendas.map(v => `<tr>
+      <td class="text-mono text-dim">${v.id.slice(-6).toUpperCase()}</td>
+      <td>${v.nomeCliente||'Consumidor Final'}<br><span class="text-dim" style="font-size:10px;">${v.clienteCpf||''}</span></td>
+      <td class="text-dim">${(v.itens||[]).map(i=>i.nomeProduto+' x'+i.quantidade).join(', ')}</td>
+      <td class="text-mono text-green">${brl(v.totalVenda)}</td>
+      <td>${v.formaPagamento||'—'}</td>
+      <td class="text-dim">${dt(v.dataVenda)}</td>
+      <td>${badgeStatus(v.status)}</td>
+      <td>${v.status==='CONCLUIDA'?`<button class="btn btn-sm btn-danger" onclick="cancelarVenda('${v.id}')">Cancelar</button>`:''}</td>
+    </tr>`).join('');
+  } catch(e) { toast('Erro ao carregar vendas','err'); }
+}
+
+carregarProdutos();
+carregarVendas();
+</script>
+</body>
+</html>

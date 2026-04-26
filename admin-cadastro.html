@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Cadastrar Negócio</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .biz-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 20px;border-bottom:1px solid var(--border);
+    font-size:13px;transition:background .15s;
+  }
+  .biz-row:last-child{border-bottom:none;}
+  .biz-row:hover{background:var(--emerald-glow);}
+  .biz-row-info .name{font-weight:500;color:var(--text);}
+  .biz-row-info .meta{font-size:11px;color:var(--text-dim);margin-top:2px;}
+  .biz-row-actions{display:flex;gap:6px;}
+
+  .required-note{
+    font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;
+    color:var(--text-dim);margin-bottom:16px;
+  }
+  .field-hint{font-size:11px;color:var(--text-dim);margin-top:4px;}
+  .form-input.has-error{border-color:var(--red);}
+  .field-error{font-size:11px;color:var(--red);margin-top:4px;display:none;}
+  .field-error.show{display:block;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Smart<span>Biz</span><small>Gerência</small></div>
+  <div class="nav-group-label">Gerência</div>
+  <a class="nav-item" href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
+  <a class="nav-item active" href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
+  <div class="sidebar-footer">
+    <p>SmartBiz v1.0 · Uniube 2026</p>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span class="page-icon">➕</span>Cadastrar Negócio</div>
+    <div class="topbar-right">
+      <a href="admin-dashboard.html" class="btn btn-ghost btn-sm">← Voltar</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="sidebar-col">
+      <!-- Formulário -->
+      <div>
+        <div class="panel">
+          <div class="panel-header" id="form-title">Novo Negócio</div>
+          <div class="panel-body">
+            <input type="hidden" id="f-id">
+
+            <p class="required-note">* Campos obrigatórios</p>
+
+            <!-- Nome -->
+            <div class="form-group">
+              <label class="form-label">Nome do Negócio *</label>
+              <input class="form-input" id="f-nome" placeholder="ex: Padaria São João" maxlength="100">
+              <span class="field-error" id="err-nome">Informe o nome do negócio.</span>
+            </div>
+
+            <!-- Tipo -->
+            <div class="form-group">
+              <label class="form-label">Tipo do Negócio *</label>
+              <input class="form-input" id="f-tipo" placeholder="ex: Padaria, Barbearia, Restaurante" maxlength="60" list="tipos-list">
+              <datalist id="tipos-list">
+                <option value="Padaria"><option value="Barbearia"><option value="Restaurante">
+                <option value="Loja de Roupas"><option value="Farmácia"><option value="Mercado">
+                <option value="Academia"><option value="Café"><option value="Pet Shop">
+                <option value="Salão de Beleza"><option value="Clínica"><option value="Oficina">
+                <option value="Papelaria"><option value="Livraria"><option value="Hortifruti">
+              </datalist>
+              <span class="field-error" id="err-tipo">Informe o tipo do negócio.</span>
+            </div>
+
+            <!-- Gmail vinculado — campo obrigatório principal -->
+            <div class="form-group">
+              <label class="form-label">Gmail Vinculado *</label>
+              <input class="form-input" id="f-email" type="email"
+                placeholder="negocio@gmail.com"
+                autocomplete="off">
+              <div class="field-hint">
+                Apenas usuários autenticados com este Gmail terão acesso a este negócio.
+                Um e-mail só pode ser vinculado a um único negócio.
+              </div>
+              <span class="field-error" id="err-email">Informe um e-mail válido.</span>
+              <span class="field-error" id="err-email-dup">Este e-mail já está vinculado a outro negócio.</span>
+            </div>
+
+            <!-- Dados opcionais -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Faturamento Hoje (R$)</label>
+                <input class="form-input" id="f-fat" type="number" step="0.01" min="0" placeholder="0,00">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Clientes Novos Hoje</label>
+                <input class="form-input" id="f-cli" type="number" min="0" placeholder="0">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Perfil dos Clientes / Gostos</label>
+              <input class="form-input" id="f-gostos"
+                placeholder="ex: café especial, produtos naturais, atendimento rápido">
+              <div class="field-hint">Usado pela IA para gerar recomendações.</div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">Salvar Negócio</button>
+              <button class="btn btn-ghost" onclick="limpar()">Limpar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de negócios cadastrados -->
+      <div>
+        <div class="panel">
+          <div class="panel-header">
+            Negócios Cadastrados
+            <button class="btn btn-ghost btn-sm" onclick="carregar()">↻ Atualizar</button>
+          </div>
+          <div class="panel-body no-pad" id="lista-negocios">
+            <div class="empty-state">Carregando...</div>
+          </div>
+        </div>
+
+        <!-- Info box -->
+        <div class="panel">
+          <div class="panel-header">ℹ️ Regras de Acesso</div>
+          <div class="panel-body">
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+              <li style="display:flex;gap:10px;font-size:13px;">
+                <span style="color:var(--emerald);font-size:16px;">✓</span>
+                <span>O <strong>Gmail vinculado</strong> deve ser único — nenhum e-mail pode estar em dois negócios.</span>
+              </li>
+              <li style="display:flex;gap:10px;font-size:13px;">
+                <span style="color:var(--emerald);font-size:16px;">✓</span>
+                <span>Ao cadastrar, um <strong>usuário USER</strong> é criado automaticamente para esse e-mail.</span>
+              </li>
+              <li style="display:flex;gap:10px;font-size:13px;">
+                <span style="color:var(--emerald);font-size:16px;">✓</span>
+                <span>Somente e-mails <strong>da gerência</strong> (ADMIN) podem cadastrar e editar negócios.</span>
+              </li>
+              <li style="display:flex;gap:10px;font-size:13px;">
+                <span style="color:var(--yellow);font-size:16px;">⚠</span>
+                <span>Ao <strong>excluir</strong> um negócio, todos os dados associados serão perdidos.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+let editando = false;
+
+/* Carrega lista de negócios */
+async function carregar() {
+  try {
+    const lista = await get(API.negocios) || [];
+    const el = document.getElementById('lista-negocios');
+    if (!lista.length) {
+      el.innerHTML = '<div class="empty-state">Nenhum negócio cadastrado.</div>';
+      return;
+    }
+    el.innerHTML = lista.map(n => `
+      <div class="biz-row">
+        <div class="biz-row-info">
+          <div class="name">${n.nome || '—'}</div>
+          <div class="meta">
+            <span class="badge badge-blue" style="font-size:8px;">${n.tipo || '—'}</span>
+            &nbsp;${n.emailVinculado || 'Sem e-mail'}
+          </div>
+        </div>
+        <div class="biz-row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editar(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="excluir('${n.id}','${(n.nome||'').replace(/'/g,"\\'")}')">🗑</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    toast('Erro ao carregar negócios.', 'err');
+  }
+}
+
+/* Salva (create ou update) */
+async function salvar() {
+  // Limpa erros
+  ['nome','tipo','email','email-dup'].forEach(id => {
+    document.getElementById('err-'+id)?.classList.remove('show');
+  });
+  ['f-nome','f-tipo','f-email'].forEach(id => {
+    document.getElementById(id)?.classList.remove('has-error');
+  });
+
+  const id     = document.getElementById('f-id').value.trim();
+  const nome   = document.getElementById('f-nome').value.trim();
+  const tipo   = document.getElementById('f-tipo').value.trim();
+  const email  = document.getElementById('f-email').value.trim().toLowerCase();
+  const fat    = parseFloat(document.getElementById('f-fat').value) || 0;
+  const cli    = parseInt(document.getElementById('f-cli').value)   || 0;
+  const gostos = document.getElementById('f-gostos').value.trim();
+
+  // Validação
+  let ok = true;
+  if (!nome) { document.getElementById('err-nome').classList.add('show'); document.getElementById('f-nome').classList.add('has-error'); ok=false; }
+  if (!tipo) { document.getElementById('err-tipo').classList.add('show'); document.getElementById('f-tipo').classList.add('has-error'); ok=false; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('err-email').classList.add('show');
+    document.getElementById('f-email').classList.add('has-error');
+    ok=false;
+  }
+  if (!ok) return;
+
+  const body = { nome, tipo, emailVinculado: email, faturamentoHoje: fat, clientesNovos: cli, gostos };
+
+  const btn = document.getElementById('btn-salvar');
+  const restore = spin(btn, 'Salvando...');
+  try {
+    if (id) {
+      await put(`${API.negocios}/${id}`, body);
+      toast('Negócio atualizado com sucesso!');
+    } else {
+      await post(API.negocios, body);
+      toast('Negócio cadastrado com sucesso!');
+    }
+    limpar();
+    carregar();
+  } catch(e) {
+    const msg = e.message || '';
+    if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('duplicate')) {
+      document.getElementById('err-email-dup').classList.add('show');
+      document.getElementById('f-email').classList.add('has-error');
+    } else {
+      toast('Erro ao salvar: ' + msg, 'err');
+    }
+  } finally {
+    restore();
+  }
+}
+
+function editar(n) {
+  editando = true;
+  document.getElementById('form-title').textContent = 'Editar Negócio';
+  document.getElementById('f-id').value     = n.id || '';
+  document.getElementById('f-nome').value   = n.nome || '';
+  document.getElementById('f-tipo').value   = n.tipo || '';
+  document.getElementById('f-email').value  = n.emailVinculado || '';
+  document.getElementById('f-fat').value    = n.faturamentoHoje || '';
+  document.getElementById('f-cli').value    = n.clientesNovos || '';
+  document.getElementById('f-gostos').value = n.gostos || '';
+  document.getElementById('f-nome').focus();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function limpar() {
+  editando = false;
+  document.getElementById('form-title').textContent = 'Novo Negócio';
+  ['f-id','f-nome','f-tipo','f-email','f-fat','f-cli','f-gostos'].forEach(id => {
+    document.getElementById(id).value = '';
+    document.getElementById(id).classList.remove('has-error');
+  });
+  ['nome','tipo','email','email-dup'].forEach(id => {
+    document.getElementById('err-'+id)?.classList.remove('show');
+  });
+}
+
+async function excluir(id, nome) {
+  if (!confirm(`Excluir "${nome}"? Todos os dados do negócio serão perdidos.`)) return;
+  try {
+    await del(`${API.negocios}/${id}`);
+    toast('Negócio excluído.');
+    if (document.getElementById('f-id').value === id) limpar();
+    carregar();
+  } catch(e) {
+    toast('Erro ao excluir: ' + e.message, 'err');
+  }
+}
+
+/* Pré-preenche se vier ?id=xxx na URL (edição via admin-dashboard) */
+(async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (id) {
+    try {
+      const n = await get(`${API.negocios}/${id}`);
+      if (n) editar(n);
+    } catch(e) { /* ignora */ }
+  }
+  carregar();
+})();
+</script>
+</body>
+</html>

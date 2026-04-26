@@ -1,14 +1,4 @@
-/* ── SmartBiz · API + Auth v2 ── */
-
-/* ═══════════════════════════════════════════════════════════════════════════
- * CONFIGURAÇÃO DO BACKEND
- *
- * LOCAL (Live Server):  'http://localhost:8080'
- * NGROK (GitHub Pages): 'https://XXXX-XX-XX-XX.ngrok-free.app'
- *
- *   ➜ Toda vez que reiniciar o ngrok, atualize a URL abaixo e dê git push.
- * ═══════════════════════════════════════════════════════════════════════════ */
-var BACKEND_URL = 'https://COLE-SUA-URL-NGROK-AQUI.ngrok-free.app';
+var BACKEND_URL = localStorage.getItem('sb_backend_url') || 'http://localhost:8080';
 
 var BASE_AUTH = BACKEND_URL;
 var BASE_API  = BACKEND_URL + '/api';
@@ -23,7 +13,6 @@ window.API = {
   authGoogle:  `${BASE_AUTH}/oauth2/authorization/google`
 };
 
-/* ── Auth Helpers ── */
 window.getToken      = () => localStorage.getItem('sb_token')    || '';
 window.getRole       = () => localStorage.getItem('sb_role')     || '';
 window.getUserEmail  = () => localStorage.getItem('sb_email')    || '';
@@ -47,7 +36,6 @@ window.logout = () => {
   window.location.href = 'login.html';
 };
 
-/* ── Proteção de Rota ── */
 (function guardRoute() {
   const page = window.location.pathname.split('/').pop() || 'index.html';
   if (page === 'login.html' || page === 'login-success.html') return;
@@ -78,7 +66,6 @@ function _injectViewingUser(url) {
   return url + (url.includes('?') ? '&' : '?') + 'viewingUserId=' + encodeURIComponent(viewingEmail);
 }
 
-/* ── HTTP helper com JWT ── */
 async function api(url, opts = {}) {
   const token = localStorage.getItem('sb_token');
   const headers = {
@@ -103,7 +90,6 @@ window.put   = (url, body) => api(url, { method:'PUT',    body: JSON.stringify(b
 window.patch = (url, body) => api(url, { method:'PATCH',  body: body ? JSON.stringify(body) : null });
 window.del   = url         => api(url, { method:'DELETE' });
 
-/* ── Enriquecer sidebar/topbar após DOM carregar ── */
 document.addEventListener('DOMContentLoaded', () => {
   const role  = localStorage.getItem('sb_role') || '';
   const email = localStorage.getItem('sb_email') || '';
@@ -135,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-/* ── UI Helpers ── */
 window.toast = function(msg, type='') {
   const t = document.createElement('div');
   t.className = `toast show ${type==='err'?'error':''}`;
@@ -151,7 +136,6 @@ window.spin = function(btn, label) {
   return () => { btn.disabled=false; btn.innerHTML=orig; };
 };
 
-/* ── Formatadores ── */
 window.brl = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 window.dt = iso => { if (!iso) return '—'; return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); };
 window.dtd = iso => { if (!iso) return '—'; return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}); };

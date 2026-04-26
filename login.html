@@ -9,8 +9,9 @@
 <style>
   :root {
     --emerald:#00c896; --emerald-dim:rgba(0,200,150,.18); --ink:#080d0b;
-    --ink2:#0f1a12; --surface:#131e16; --border:rgba(0,200,150,.13);
+    --surface:#131e16; --border:rgba(0,200,150,.13);
     --text:#e2ede6; --text-dim:rgba(226,237,230,.4); --red:#f05252;
+    --yellow:#f59e0b;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%}
@@ -32,37 +33,18 @@
     background:radial-gradient(circle,rgba(0,200,150,.08) 0%,transparent 70%);
     top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;
   }
-  .login-wrap{
-    position:relative;z-index:1;
-    width:100%;max-width:380px;padding:20px;
-  }
+  .login-wrap{position:relative;z-index:1;width:100%;max-width:380px;padding:20px;}
   .login-card{
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:44px 36px;
-    text-align:center;
-    box-shadow:0 24px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(0,200,150,.05);
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:44px 36px;text-align:center;
+    box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 0 1px rgba(0,200,150,.05);
   }
-  .logo{
-    font-family:'Syne',sans-serif;font-size:32px;font-weight:800;
-    color:#fff;letter-spacing:-1px;margin-bottom:6px;
-  }
+  .logo{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:6px;}
   .logo span{color:var(--emerald);}
-  .tagline{
-    font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;
-    color:var(--text-dim);text-transform:uppercase;margin-bottom:36px;
-  }
-  .divider{
-    display:flex;align-items:center;gap:12px;margin-bottom:24px;
-  }
-  .divider::before,.divider::after{
-    content:'';flex:1;height:1px;background:var(--border);
-  }
-  .divider span{
-    font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;
-    color:var(--text-dim);text-transform:uppercase;white-space:nowrap;
-  }
+  .tagline{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:36px;}
+  .divider{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+  .divider span{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;white-space:nowrap;}
   .btn-google{
     display:flex;align-items:center;justify-content:center;gap:12px;
     background:#fff;color:#1f1f1f;text-decoration:none;
@@ -79,38 +61,43 @@
   }
   .error-banner.show{display:block;}
 
-  /* ── Configurador de servidor ── */
-  .server-config{
-    margin-top:24px;
-    border-top:1px solid var(--border);
-    padding-top:16px;
-    text-align:left;
+  /* ── aviso ngrok ── */
+  .ngrok-warn{
+    margin-top:16px;
+    background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);
+    border-radius:6px;padding:14px 16px;text-align:left;display:none;
   }
-  .server-toggle{
-    display:flex;align-items:center;justify-content:space-between;
-    cursor:pointer;user-select:none;
+  .ngrok-warn.show{display:block;}
+  .ngrok-warn-title{
+    font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--yellow);margin-bottom:8px;
   }
-  .server-toggle-label{
-    font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;
-    color:var(--text-dim);text-transform:uppercase;
+  .ngrok-warn-text{font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px;}
+  .btn-visit{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
+    color:var(--yellow);border-radius:4px;padding:7px 12px;
+    font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;cursor:pointer;text-decoration:none;
+    transition:all .2s;
   }
-  .server-status{
-    font-family:'DM Mono',monospace;font-size:9px;
-    color:var(--emerald);letter-spacing:1px;
-  }
-  .server-status.offline{ color:#f59e0b; }
-  .server-fields{
-    margin-top:12px;display:none;
-  }
-  .server-fields.open{ display:block; }
+  .btn-visit:hover{background:rgba(245,158,11,.25);}
+
+  /* ── configurador servidor ── */
+  .server-config{margin-top:20px;border-top:1px solid var(--border);padding-top:14px;text-align:left;}
+  .server-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+  .server-toggle-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;}
+  .server-status{font-family:'DM Mono',monospace;font-size:9px;color:var(--emerald);letter-spacing:1px;}
+  .server-status.offline{color:var(--yellow);}
+  .server-fields{margin-top:12px;display:none;}
+  .server-fields.open{display:block;}
   .server-input{
     width:100%;background:#0a0f0c;border:1px solid var(--border);
     border-radius:4px;padding:9px 12px;color:var(--text);
-    font-family:'DM Mono',monospace;font-size:11px;
-    outline:none;transition:border-color .2s;
+    font-family:'DM Mono',monospace;font-size:11px;outline:none;transition:border-color .2s;
   }
-  .server-input:focus{ border-color:var(--emerald); }
-  .server-input::placeholder{ color:var(--text-dim); }
+  .server-input:focus{border-color:var(--emerald);}
+  .server-input::placeholder{color:var(--text-dim);}
   .server-save{
     margin-top:8px;width:100%;
     background:var(--emerald-dim);border:1px solid rgba(0,200,150,.3);
@@ -118,17 +105,10 @@
     font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;
     text-transform:uppercase;cursor:pointer;transition:all .2s;
   }
-  .server-save:hover{ background:rgba(0,200,150,.28); }
-  .server-hint{
-    margin-top:8px;font-family:'DM Mono',monospace;font-size:9px;
-    color:var(--text-dim);line-height:1.6;
-  }
+  .server-save:hover{background:rgba(0,200,150,.28);}
+  .server-hint{margin-top:8px;font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dim);line-height:1.6;}
 
-  .footer-note{
-    margin-top:20px;font-family:'DM Mono',monospace;
-    font-size:9px;letter-spacing:1px;color:var(--text-dim);
-    text-align:center;text-transform:uppercase;
-  }
+  .footer-note{margin-top:20px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text-dim);text-align:center;text-transform:uppercase;}
 </style>
 </head>
 <body>
@@ -153,23 +133,28 @@
         Entrar com Google
       </a>
 
+      <!-- Aviso ngrok: aparece quando o servidor é ngrok e o aviso ainda não foi aceito -->
+      <div class="ngrok-warn" id="ngrok-warn">
+        <div class="ngrok-warn-title">⚠ Passo necessário</div>
+        <div class="ngrok-warn-text">
+          O servidor usa ngrok e exibe um aviso de segurança na primeira visita.
+          Clique abaixo, aceite o aviso (<strong>Visit Site</strong>), feche a aba e volte aqui para fazer login.
+        </div>
+        <a id="btn-visit" href="#" target="_blank" class="btn-visit">
+          🔗 Abrir servidor e aceitar aviso
+        </a>
+      </div>
+
+      <!-- Configurador de servidor -->
       <div class="server-config">
         <div class="server-toggle" onclick="toggleConfig()">
           <span class="server-toggle-label">⚙ Servidor</span>
-          <span class="server-status" id="server-status">carregando...</span>
+          <span class="server-status" id="server-status">—</span>
         </div>
         <div class="server-fields" id="server-fields">
-          <input
-            type="text"
-            id="server-input"
-            class="server-input"
-            placeholder="https://xxxx.ngrok-free.dev"
-          />
+          <input type="text" id="server-input" class="server-input" placeholder="https://xxxx.ngrok-free.dev"/>
           <button class="server-save" onclick="salvarServidor()">Salvar e recarregar</button>
-          <div class="server-hint">
-            Cole aqui a URL do ngrok fornecida pelo administrador.<br>
-            Ex: https://abc-12-34.ngrok-free.dev
-          </div>
+          <div class="server-hint">Cole aqui a URL do ngrok fornecida pelo administrador.</div>
         </div>
       </div>
     </div>
@@ -179,24 +164,40 @@
   <script src="api.js"></script>
   <script>
     var configOpen = false;
+    var backendUrl = localStorage.getItem('sb_backend_url') || 'http://localhost:8080';
+    var isNgrok    = backendUrl.includes('ngrok');
 
-    function atualizarBotaoGoogle() {
-      var url = localStorage.getItem('sb_backend_url') || 'http://localhost:8080';
-      document.getElementById('btn-google').href = url + '/oauth2/authorization/google';
-    }
+    function init() {
+      // Atualiza botão Google
+      document.getElementById('btn-google').href = backendUrl + '/oauth2/authorization/google';
 
-    function atualizarStatus() {
-      var url = localStorage.getItem('sb_backend_url');
-      var el  = document.getElementById('server-status');
-      if (!url || url === 'http://localhost:8080') {
+      // Atualiza botão "Abrir servidor"
+      document.getElementById('btn-visit').href = backendUrl;
+
+      // Status
+      var el = document.getElementById('server-status');
+      if (!isNgrok) {
         el.textContent = 'local';
         el.className   = 'server-status offline';
       } else {
-        var short = url.replace('https://', '').split('.')[0];
+        var short = backendUrl.replace('https://', '').split('.')[0];
         el.textContent = short;
         el.className   = 'server-status';
       }
-      document.getElementById('server-input').value = url || '';
+
+      document.getElementById('server-input').value = backendUrl;
+
+      // Aviso ngrok: mostra só se for ngrok E ainda não verificou
+      if (isNgrok && !localStorage.getItem('ngrok_accepted_' + backendUrl)) {
+        document.getElementById('ngrok-warn').classList.add('show');
+
+        // Quando a aba do ngrok fechar/perder foco e voltar, marca como aceito
+        window.addEventListener('focus', function onFocus() {
+          localStorage.setItem('ngrok_accepted_' + backendUrl, '1');
+          document.getElementById('ngrok-warn').classList.remove('show');
+          window.removeEventListener('focus', onFocus);
+        });
+      }
     }
 
     function toggleConfig() {
@@ -207,13 +208,13 @@
     function salvarServidor() {
       var val = document.getElementById('server-input').value.trim().replace(/\/$/, '');
       if (!val) return;
+      // Limpa aceitação anterior ao trocar URL
+      localStorage.removeItem('ngrok_accepted_' + backendUrl);
       localStorage.setItem('sb_backend_url', val);
       location.reload();
     }
 
-    // Inicializar
-    atualizarBotaoGoogle();
-    atualizarStatus();
+    init();
 
     var params = new URLSearchParams(window.location.search);
     if (params.get('error') === 'unauthorized') {

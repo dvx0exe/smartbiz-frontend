@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080d0b">
+<title>SmartBiz · Pagar</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --emerald:#00c896; --emerald-dim:rgba(0,200,150,.15);
+  --ink:#080d0b; --ink2:#0f1a12; --surface:#131e16; --surface2:#192419;
+  --border:rgba(0,200,150,.13); --text:#e2ede6;
+  --text-dim:rgba(226,237,230,.4); --text-mid:rgba(226,237,230,.7);
+  --red:#f05252; --yellow:#f4a72a;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--ink);color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;
+  min-height:100vh;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,200,150,.018) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,200,150,.018) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+
+/* ── LAYOUT ── */
+.portal-wrap{
+  position:relative;z-index:1;
+  max-width:540px;margin:0 auto;padding:24px 16px 60px;
+}
+.portal-logo{
+  text-align:center;padding:24px 0 20px;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#fff;letter-spacing:-.5px;
+}
+.portal-logo span{color:var(--emerald);}
+.portal-logo small{
+  display:block;font-family:'DM Mono',monospace;font-size:8px;
+  letter-spacing:3px;color:var(--text-dim);font-weight:400;margin-top:3px;text-transform:uppercase;
+}
+
+/* ── NEGOCIO HEADER ── */
+.negocio-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:20px;margin-bottom:20px;text-align:center;
+  animation:fadein .4s ease;
+}
+.negocio-avatar{
+  width:60px;height:60px;border-radius:50%;background:var(--emerald-dim);
+  border:1px solid rgba(0,200,150,.3);display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--emerald);
+  margin:0 auto 12px;
+}
+.negocio-nome{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#fff;margin-bottom:4px;}
+.negocio-cidade{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;}
+
+/* ── PANELS ── */
+.panel{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;margin-bottom:16px;overflow:hidden;
+  animation:fadein .4s ease;
+}
+.panel-header{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--emerald);text-transform:uppercase;
+}
+.panel-body{padding:18px;}
+
+/* ── FORM ── */
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+.form-input,.form-select{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:4px;padding:10px 12px;color:var(--text);font-size:14px;
+  font-family:'DM Sans',sans-serif;transition:border-color .15s;outline:none;
+}
+.form-input:focus,.form-select:focus{border-color:var(--emerald);}
+.form-input::placeholder{color:var(--text-dim);}
+
+/* valor grande */
+.valor-grande{
+  font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--emerald);
+  text-align:center;padding:8px 0 4px;letter-spacing:-1px;
+}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 18px;border-radius:4px;font-weight:600;font-size:13px;
+  cursor:pointer;border:none;transition:all .15s;text-decoration:none;
+}
+.btn-primary{background:var(--emerald);color:#000;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+.btn-ghost:hover{border-color:var(--emerald);color:var(--emerald);}
+.btn-full{width:100%;}
+.btn-lg{padding:14px 18px;font-size:15px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── QR ── */
+.qr-wrapper{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  background:#fff;border-radius:12px;padding:20px;margin:16px 0;
+}
+.qr-wrapper canvas,qr-wrapper img{border-radius:4px;}
+.qr-label{font-family:'DM Mono',monospace;font-size:10px;color:#444;text-align:center;letter-spacing:1px;}
+
+.emv-box{
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:12px;font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--text-dim);word-break:break-all;line-height:1.6;margin-bottom:12px;
+}
+
+/* ── BUSCA DE NEGÓCIOS ── */
+.negocio-list-item{
+  display:flex;align-items:center;gap:12px;padding:14px 18px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;
+}
+.negocio-list-item:last-child{border:none;}
+.negocio-list-item:hover{background:rgba(0,200,150,.04);}
+.negocio-list-avatar{
+  width:38px;height:38px;border-radius:50%;background:var(--emerald-dim);
+  border:1px solid rgba(0,200,150,.2);display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--emerald);flex-shrink:0;
+}
+.negocio-list-info{flex:1;min-width:0;}
+.negocio-list-nome{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.negocio-list-sub{font-size:11px;color:var(--text-dim);}
+.negocio-list-arrow{color:var(--text-dim);font-size:16px;}
+
+/* ── ESTADOS ── */
+.empty-state{padding:32px;text-align:center;color:var(--text-dim);font-size:13px;}
+.step-indicator{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--text-dim);text-transform:uppercase;margin-bottom:20px;
+}
+.step-dot{width:6px;height:6px;border-radius:50%;background:var(--border);}
+.step-dot.active{background:var(--emerald);}
+.step-dot.done{background:rgba(0,200,150,.4);}
+
+/* ── SUCCESS ── */
+.success-box{
+  background:rgba(0,200,150,.05);border:1px solid rgba(0,200,150,.2);
+  border-radius:10px;padding:28px;text-align:center;animation:fadein .5s ease;
+}
+.success-icon{font-size:44px;margin-bottom:12px;}
+.success-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--emerald);margin-bottom:6px;}
+.success-msg{font-size:13px;color:var(--text-mid);}
+
+/* ── BADGE PIX ── */
+.pix-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 12px;
+  background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.2);
+  border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:2px;color:var(--emerald);text-transform:uppercase;
+}
+
+/* ── MODO SELEÇÃO DE NEGÓCIO ── */
+#view-selecao{display:block;}
+#view-pagamento{display:none;}
+#view-sucesso{display:none;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:10px 18px;font-size:13px;color:var(--text);
+  transition:transform .3s ease;z-index:999;white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.error{border-color:var(--red);color:var(--red);}
+
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+</style>
+</head>
+<body>
+
+<div class="portal-wrap">
+
+  <div class="portal-logo">
+    Smart<span>Biz</span>
+    <small>Portal de Pagamento</small>
+  </div>
+
+  <!-- ════════════════════════════════
+       VIEW: SELEÇÃO DE NEGÓCIO
+  ════════════════════════════════ -->
+  <div id="view-selecao">
+    <div class="step-indicator">
+      <div class="step-dot active" id="sd1"></div>
+      <div style="width:24px;height:1px;background:var(--border);"></div>
+      <div class="step-dot" id="sd2"></div>
+      <div style="width:24px;height:1px;background:var(--border);"></div>
+      <div class="step-dot" id="sd3"></div>
+    </div>
+
+    <!-- busca manual -->
+    <div class="panel" id="panel-busca">
+      <div class="panel-header">🏪 Selecionar Negócio</div>
+      <div class="panel-body">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Buscar negócio</label>
+          <input class="form-input" id="busca-negocio" placeholder="Nome do negócio..." oninput="filtrarNegocios()">
+        </div>
+      </div>
+      <div id="lista-negocios">
+        <div class="empty-state" id="negocios-loading">Carregando negócios...</div>
+      </div>
+    </div>
+
+    <!-- ou digitar chave manualmente -->
+    <div class="panel">
+      <div class="panel-header">🔑 Pagar com Chave PIX Manual</div>
+      <div class="panel-body">
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+          Se o negócio forneceu a chave PIX diretamente, insira aqui.
+        </div>
+        <div class="form-group">
+          <label class="form-label">Chave PIX</label>
+          <input class="form-input" id="manual-chave" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nome do recebedor</label>
+          <input class="form-input" id="manual-nome" placeholder="Nome da pessoa ou empresa">
+        </div>
+        <button class="btn btn-ghost btn-full" onclick="usarChaveManual()">Usar esta chave →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       VIEW: PAGAMENTO
+  ════════════════════════════════ -->
+  <div id="view-pagamento">
+    <div class="step-indicator">
+      <div class="step-dot done" id="pd1"></div>
+      <div style="width:24px;height:1px;background:var(--border);"></div>
+      <div class="step-dot active" id="pd2"></div>
+      <div style="width:24px;height:1px;background:var(--border);"></div>
+      <div class="step-dot" id="pd3"></div>
+    </div>
+
+    <!-- Card do negócio -->
+    <div class="negocio-card" id="negocio-header">
+      <div class="negocio-avatar" id="neg-avatar">?</div>
+      <div class="negocio-nome" id="neg-nome">—</div>
+      <div class="negocio-cidade" id="neg-cidade">—</div>
+    </div>
+
+    <!-- Valor e descrição -->
+    <div class="panel">
+      <div class="panel-header">💰 Informações do Pagamento</div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label class="form-label">Valor (R$) *</label>
+          <input class="form-input" id="pay-val" type="number" step="0.01" min="0.01"
+            placeholder="0,00" style="font-size:22px;font-family:'Syne',sans-serif;font-weight:700;text-align:center;"
+            oninput="atualizarQR()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descrição / Referência</label>
+          <input class="form-input" id="pay-desc" placeholder="ex: Pedido 42, Consulta, Mensalidade...">
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" id="btn-gerar" onclick="gerarQRPagamento()">
+          Gerar QR Code PIX
+        </button>
+        <button class="btn btn-ghost btn-full" style="margin-top:8px;" onclick="voltarSelecao()">
+          ← Voltar
+        </button>
+      </div>
+    </div>
+
+    <!-- QR Code gerado -->
+    <div class="panel" id="panel-qr" style="display:none;">
+      <div class="panel-header">📱 QR Code PIX</div>
+      <div class="panel-body" style="text-align:center;">
+
+        <div style="margin-bottom:12px;">
+          <span class="pix-badge">🟢 PIX — QR Code oficial BCB</span>
+        </div>
+
+        <div class="valor-grande" id="qr-valor-display">R$ 0,00</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;" id="qr-desc-display"></div>
+
+        <div class="qr-wrapper">
+          <div id="qr-canvas"></div>
+          <div class="qr-label" id="qr-chave-display">Chave: —</div>
+        </div>
+
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">
+          Escaneie com o app do seu banco ou carteira digital.<br>
+          O QR Code segue o padrão oficial do Banco Central.
+        </div>
+
+        <!-- Pix Copia e Cola -->
+        <div class="emv-box" id="emv-display" style="text-align:left;"></div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-primary btn-full btn-lg" onclick="copiarEMV()">
+            📋 Copiar Pix Copia e Cola
+          </button>
+          <button class="btn btn-ghost btn-full" onclick="abrirAppBanco()">
+            📱 Abrir app do banco
+          </button>
+          <button class="btn btn-ghost btn-full" id="btn-confirmar" onclick="confirmarPagamento()">
+            ✓ Confirmei o pagamento
+          </button>
+        </div>
+
+        <div style="margin-top:16px;font-size:11px;color:var(--text-dim);line-height:1.7;">
+          Após pagar, o recebimento é confirmado em segundos pelo seu banco.
+          Guarde o comprovante gerado pelo seu aplicativo bancário.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       VIEW: SUCESSO
+  ════════════════════════════════ -->
+  <div id="view-sucesso">
+    <div class="success-box">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Pagamento enviado!</div>
+      <div class="success-msg" id="sucesso-msg" style="margin-top:8px;margin-bottom:20px;"></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:left;margin-bottom:18px;">
+        <div id="sucesso-detalhes" style="font-family:'DM Mono',monospace;font-size:11px;line-height:2;color:var(--text-mid);"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:16px;">
+        Guarde o comprovante gerado pelo seu app bancário como prova do pagamento.
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="novoPagemento()">← Fazer outro pagamento</button>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;">
+      <a href="index.html" style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text-dim);text-decoration:none;">
+        SmartBiz · Uberlândia, MG
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─────────────────────────────────────
+   PIX EMV — padrão Banco Central
+───────────────────────────────────── */
+function gerarPixEMV({ chave, nome, cidade, valor, txid }) {
+  const f = (id, v) => { const s=String(v); return `${id}${s.length.toString().padStart(2,'0')}${s}`; };
+  const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9 ]/g,'').trim().toUpperCase();
+  const normNome   = norm(nome||'RECEBEDOR').slice(0,25);
+  const normCidade = norm(cidade||'UBERLANDIA').slice(0,15);
+  const normTxid   = (txid||'***').replace(/[^A-Za-z0-9]/g,'').slice(0,25)||'***';
+  const gui = f('00','br.gov.bcb.pix') + f('01',(chave||'').trim());
+  const ma  = f('26',gui);
+  const ad  = f('62',f('05',normTxid));
+  let p = f('00','01')+ma+f('52','0000')+f('53','986');
+  if(valor && parseFloat(valor)>0) p += f('54',parseFloat(valor).toFixed(2));
+  p += f('58','BR')+f('59',normNome)+f('60',normCidade)+ad+'6304';
+  let crc=0xFFFF;
+  for(const c of p){ crc^=c.charCodeAt(0)<<8; for(let i=0;i<8;i++) crc=(crc&0x8000)?((crc<<1)^0x1021)&0xFFFF:(crc<<1)&0xFFFF; }
+  return p+crc.toString(16).toUpperCase().padStart(4,'0');
+}
+
+function renderQR(containerId, text) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  new QRCode(el, { text, width:200, height:200, correctLevel:QRCode.CorrectLevel.M });
+}
+
+/* ─────────────────────────────────────
+   ESTADO GLOBAL
+───────────────────────────────────── */
+let negocioAtual = null; // { chave, nome, cidade }
+let emvAtual = '';
+
+/* ─────────────────────────────────────
+   URL PARAMS — link de cobrança
+───────────────────────────────────── */
+function lerURLParams() {
+  const p = new URLSearchParams(window.location.search);
+  const chave  = p.get('pix');
+  const nome   = p.get('nome');
+  const cidade = p.get('cidade') || 'UBERLANDIA';
+  const valor  = p.get('valor');
+  const desc   = p.get('desc');
+  const ref    = p.get('ref');
+
+  if (chave && nome) {
+    // Vem via link de cobrança → pular seleção
+    negocioAtual = { chave, nome, cidade };
+    if (valor) document.getElementById('pay-val').value = valor;
+    if (desc)  document.getElementById('pay-desc').value = desc;
+    if (ref && !desc) document.getElementById('pay-desc').value = ref;
+    abrirViewPagamento();
+    // Se tem valor e chave, gera QR automaticamente
+    if (valor && parseFloat(valor) > 0) {
+      setTimeout(gerarQRPagamento, 300);
+    }
+  }
+}
+
+/* ─────────────────────────────────────
+   BUSCA DE NEGÓCIOS (API)
+───────────────────────────────────── */
+let todosNegocios = [];
+
+async function carregarNegocios() {
+  try {
+    const BACKEND = localStorage.getItem('sb_backend_url') || 'http://localhost:8080';
+    const token   = localStorage.getItem('sb_token') || '';
+    const headers = { 'Content-Type':'application/json', 'ngrok-skip-browser-warning':'true' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(BACKEND + '/api/negocios', { headers });
+    if (!res.ok) throw new Error('erro');
+    todosNegocios = await res.json();
+    renderNegocios(todosNegocios);
+  } catch {
+    // sem auth ou API offline → esconde painel de busca
+    document.getElementById('panel-busca').style.display = 'none';
+  }
+}
+
+function renderNegocios(lista) {
+  const el = document.getElementById('lista-negocios');
+  if (!lista.length) { el.innerHTML='<div class="empty-state">Nenhum negócio encontrado.</div>'; return; }
+  el.innerHTML = lista.map(n => {
+    const ini = (n.nome||'?').charAt(0).toUpperCase();
+    const pixChave = localStorage.getItem('sb_pix_chave_'+n.id) || '';
+    const pixNome  = localStorage.getItem('sb_pix_nome_'+n.id)  || n.nome || '';
+    const temPix   = !!pixChave;
+    return `
+      <div class="negocio-list-item" onclick="selecionarNegocio('${n.id}','${escHtml(n.nome)}','${escHtml(pixChave)}','${escHtml(pixNome)}')">
+        <div class="negocio-list-avatar">${ini}</div>
+        <div class="negocio-list-info">
+          <div class="negocio-list-nome">${escHtml(n.nome)}</div>
+          <div class="negocio-list-sub">${temPix ? '✅ PIX configurado' : '⚠ PIX não configurado pelo negócio'}</div>
+        </div>
+        <div class="negocio-list-arrow">›</div>
+      </div>`;
+  }).join('');
+}
+
+function filtrarNegocios() {
+  const q = document.getElementById('busca-negocio').value.toLowerCase();
+  renderNegocios(todosNegocios.filter(n => n.nome.toLowerCase().includes(q)));
+}
+
+function escHtml(s) { return (s||'').replace(/'/g,"\\'").replace(/</g,'&lt;'); }
+
+function selecionarNegocio(id, nome, pixChave, pixNome) {
+  const cidade = localStorage.getItem('sb_pix_cidade_'+id) || 'UBERLANDIA';
+  if (!pixChave) {
+    // PIX não configurado por esse negócio → pede chave manual
+    document.getElementById('manual-nome').value = nome;
+    toast('PIX não configurado para este negócio. Insira a chave manualmente.','warn');
+    document.getElementById('manual-chave').focus();
+    return;
+  }
+  negocioAtual = { chave: pixChave, nome: pixNome || nome, cidade };
+  abrirViewPagamento();
+}
+
+function usarChaveManual() {
+  const chave = document.getElementById('manual-chave').value.trim();
+  const nome  = document.getElementById('manual-nome').value.trim();
+  if (!chave || !nome) { toast('Preencha a chave PIX e o nome.','err'); return; }
+  negocioAtual = { chave, nome, cidade: 'UBERLANDIA' };
+  abrirViewPagamento();
+}
+
+/* ─────────────────────────────────────
+   VIEWS
+───────────────────────────────────── */
+function abrirViewPagamento() {
+  document.getElementById('view-selecao').style.display  = 'none';
+  document.getElementById('view-pagamento').style.display = 'block';
+  document.getElementById('view-sucesso').style.display  = 'none';
+
+  const n = negocioAtual;
+  const ini = (n.nome||'?').charAt(0).toUpperCase();
+  document.getElementById('neg-avatar').textContent = ini;
+  document.getElementById('neg-nome').textContent   = n.nome;
+  document.getElementById('neg-cidade').textContent = n.cidade || 'Uberlândia, MG';
+
+  document.getElementById('panel-qr').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function voltarSelecao() {
+  negocioAtual = null; emvAtual = '';
+  document.getElementById('view-selecao').style.display   = 'block';
+  document.getElementById('view-pagamento').style.display = 'none';
+  document.getElementById('view-sucesso').style.display   = 'none';
+  document.getElementById('pay-val').value = '';
+  document.getElementById('pay-desc').value = '';
+  document.getElementById('panel-qr').style.display = 'none';
+}
+
+function novoPagemento() {
+  negocioAtual = null; emvAtual = '';
+  document.getElementById('view-selecao').style.display   = 'block';
+  document.getElementById('view-pagamento').style.display = 'none';
+  document.getElementById('view-sucesso').style.display   = 'none';
+  document.getElementById('pay-val').value = '';
+  document.getElementById('pay-desc').value = '';
+  document.getElementById('busca-negocio').value = '';
+  filtrarNegocios();
+}
+
+/* ─────────────────────────────────────
+   QR CODE
+───────────────────────────────────── */
+function atualizarQR() {
+  // regenerar QR se já estava visível
+  if (document.getElementById('panel-qr').style.display !== 'none') {
+    gerarQRPagamento();
+  }
+}
+
+function gerarQRPagamento() {
+  if (!negocioAtual) return;
+  const val  = parseFloat(document.getElementById('pay-val').value);
+  const desc = document.getElementById('pay-desc').value.trim();
+  if (!val || val <= 0) { toast('Informe o valor do pagamento.','err'); return; }
+
+  const txid = Date.now().toString(36).toUpperCase().slice(-10);
+  emvAtual = gerarPixEMV({
+    chave:  negocioAtual.chave,
+    nome:   negocioAtual.nome,
+    cidade: negocioAtual.cidade || 'UBERLANDIA',
+    valor:  val,
+    txid
+  });
+
+  renderQR('qr-canvas', emvAtual);
+
+  const fmt = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(val);
+  document.getElementById('qr-valor-display').textContent = fmt;
+  document.getElementById('qr-desc-display').textContent  = desc || '';
+  document.getElementById('qr-chave-display').textContent = 'Chave: ' + negocioAtual.chave;
+  document.getElementById('emv-display').textContent      = emvAtual;
+  document.getElementById('panel-qr').style.display = 'block';
+  document.getElementById('panel-qr').scrollIntoView({behavior:'smooth'});
+}
+
+function copiarEMV() {
+  if (!emvAtual) return;
+  const copiar = txt => {
+    navigator.clipboard.writeText(txt).then(()=>toast('✓ Pix Copia e Cola copiado!')).catch(()=>{
+      const ta=document.createElement('textarea');ta.value=txt;
+      document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+      toast('✓ Pix Copia e Cola copiado!');
+    });
+  };
+  copiar(emvAtual);
+}
+
+function abrirAppBanco() {
+  // Tenta abrir via deep link pixqrcode://
+  // A maioria dos bancos usa o clipboard para copia e cola
+  copiarEMV();
+  toast('Chave copiada! Cole no app do seu banco.');
+}
+
+function confirmarPagamento() {
+  if (!negocioAtual || !emvAtual) return;
+  const val  = parseFloat(document.getElementById('pay-val').value)||0;
+  const desc = document.getElementById('pay-desc').value.trim();
+  const fmt  = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(val);
+  const agora= new Date().toLocaleString('pt-BR');
+  const tid  = Date.now().toString(36).toUpperCase();
+
+  document.getElementById('view-selecao').style.display   = 'none';
+  document.getElementById('view-pagamento').style.display = 'none';
+  document.getElementById('view-sucesso').style.display   = 'block';
+
+  document.getElementById('sucesso-msg').textContent = `Você declarou o pagamento de ${fmt} para ${negocioAtual.nome}.`;
+  document.getElementById('sucesso-detalhes').innerHTML = `
+    <div>Valor: <b style="color:var(--emerald)">${fmt}</b></div>
+    ${desc?`<div>Descrição: <b>${desc}</b></div>`:''}
+    <div>Para: <b>${negocioAtual.nome}</b></div>
+    <div>Chave PIX: <b>${negocioAtual.chave}</b></div>
+    <div>Horário: <b>${agora}</b></div>
+    <div>Ref: <b style="color:rgba(0,200,150,.5)">${tid}</b></div>
+  `;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ─────────────────────────────────────
+   TOAST
+───────────────────────────────────── */
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type==='err'?'error':''}`;
+  clearTimeout(t._to);
+  t._to = setTimeout(()=>{ t.classList.remove('show'); }, 3200);
+}
+
+/* ─────────────────────────────────────
+   INIT
+───────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  carregarNegocios();
+  lerURLParams();
+});
+</script>
+</body>
+</html>

@@ -5,19 +5,31 @@
 <title>SmartBiz · Pagamentos</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-.pag-method { border:1px solid var(--border);border-radius:4px;padding:18px;cursor:pointer;transition:all .15s;text-align:center;user-select:none; }
-.pag-method:hover { border-color:var(--emerald); }
-.pag-method.selected { border-color:var(--emerald);background:rgba(0,200,150,.06); }
-.pag-method-icon { font-size:28px;margin-bottom:6px; }
-.pag-method-name { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase; }
-.pag-method.selected .pag-method-name { color:var(--emerald); }
-.pix-qr { background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center;margin:14px 0; }
-.confirm-box { background:rgba(0,200,150,.05);border:1px solid var(--border);border-radius:4px;padding:18px;display:none; }
-.confirm-box.show { display:block;animation:fadein .3s ease; }
-.confirm-row { display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(0,200,150,.06); }
-.confirm-row:last-child { border:none; }
-.confirm-total { font-size:16px;font-weight:600;color:var(--emerald);border-top:1px solid var(--border);padding-top:10px;margin-top:6px; }
+.pag-method{border:1px solid var(--border);border-radius:4px;padding:18px;cursor:pointer;transition:all .15s;text-align:center;user-select:none;}
+.pag-method:hover{border-color:var(--emerald);}
+.pag-method.selected{border-color:var(--emerald);background:rgba(0,200,150,.06);}
+.pag-method-icon{font-size:28px;margin-bottom:6px;}
+.pag-method-name{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;}
+.pag-method.selected .pag-method-name{color:var(--emerald);}
+.pix-qr-wrapper{background:#fff;border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;margin:14px 0;gap:10px;}
+.pix-emv-box{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);word-break:break-all;line-height:1.6;width:100%;}
+.confirm-box{background:rgba(0,200,150,.05);border:1px solid var(--border);border-radius:4px;padding:18px;display:none;}
+.confirm-box.show{display:block;animation:fadein .3s ease;}
+.confirm-row{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(0,200,150,.06);}
+.confirm-row:last-child{border:none;}
+.pix-config-badge{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--text-dim);margin-bottom:14px;}
+.pix-config-badge.ok{border-color:var(--emerald);color:var(--emerald);background:rgba(0,200,150,.06);}
+.pix-config-badge.miss{border-color:var(--red);color:var(--red);}
+.link-box{background:var(--surface2);border:1px dashed var(--border);border-radius:4px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);word-break:break-all;margin:8px 0;}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto;}
+.tab-btn{padding:9px 18px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.tab-btn.active{color:var(--emerald);border-bottom-color:var(--emerald);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.alerta-warn{background:rgba(244,167,42,.05);border:1px solid rgba(244,167,42,.3);border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--yellow);}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -34,166 +46,411 @@
   <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
   <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
   <a class="nav-item" href="caixa.html"><span class="nav-icon">💰</span>Fluxo de Caixa</a>
-  <div class="nav-group-label">Clientes & Fiscal</div>
+  <div class="nav-group-label">Clientes &amp; Fiscal</div>
   <a class="nav-item" href="clientes.html"><span class="nav-icon">👥</span>Clientes</a>
   <a class="nav-item" href="nfe.html"><span class="nav-icon">📄</span>NF-e</a>
   <a class="nav-item active" href="pagamentos.html"><span class="nav-icon">💳</span>Pagamentos</a>
+  <a class="nav-item" href="portal-pagamento.html"><span class="nav-icon">🔗</span>Portal do Cliente</a>
   <div class="sidebar-footer"><p>SmartBiz v1.0 · Uniube 2026</p></div>
 </aside>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-title"><span class="page-icon">💳</span>Integração com Pagamentos</div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-ghost" onclick="window.open('portal-pagamento.html','_blank')">🔗 Portal do Cliente</button>
+    </div>
   </div>
 
   <div class="content">
-    <div class="two-col">
-      <!-- Processador de pagamento -->
-      <div class="panel">
-        <div class="panel-header">Processar Cobrança</div>
-        <div class="panel-body">
-          <div class="form-group">
-            <label class="form-label">Descrição da cobrança *</label>
-            <input class="form-input" id="p-desc" placeholder="ex: Corte de cabelo, Entrega de pedido">
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Valor (R$) *</label>
-              <input class="form-input" id="p-val" type="number" step="0.01" min="0.01" placeholder="0,00" oninput="atualizarTotal()">
-            </div>
-            <div class="form-group">
-              <label class="form-label">CPF do cliente (opcional)</label>
-              <input class="form-input" id="p-cpf" placeholder="000.000.000-00">
-            </div>
-          </div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tbtn-processar" onclick="setTab('processar')">Processar Cobrança</button>
+      <button class="tab-btn" id="tbtn-config"    onclick="setTab('config')">⚙ Configurar PIX</button>
+      <button class="tab-btn" id="tbtn-link"      onclick="setTab('link')">🔗 Link de Cobrança</button>
+      <button class="tab-btn" id="tbtn-historico" onclick="setTab('historico')">Histórico</button>
+    </div>
 
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin:16px 0 10px;">Forma de Pagamento</div>
-          <div class="three-col" style="gap:10px;margin-bottom:16px;">
-            <div class="pag-method selected" id="pm-pix" onclick="selPag('pix')">
-              <div class="pag-method-icon">📱</div>
-              <div class="pag-method-name">PIX</div>
-            </div>
-            <div class="pag-method" id="pm-debito" onclick="selPag('debito')">
-              <div class="pag-method-icon">💳</div>
-              <div class="pag-method-name">Débito</div>
-            </div>
-            <div class="pag-method" id="pm-credito" onclick="selPag('credito')">
-              <div class="pag-method-icon">💳</div>
-              <div class="pag-method-name">Crédito</div>
-            </div>
-            <div class="pag-method" id="pm-dinheiro" onclick="selPag('dinheiro')">
-              <div class="pag-method-icon">💵</div>
-              <div class="pag-method-name">Dinheiro</div>
-            </div>
-            <div class="pag-method" id="pm-boleto" onclick="selPag('boleto')">
-              <div class="pag-method-icon">📜</div>
-              <div class="pag-method-name">Boleto</div>
-            </div>
-          </div>
-
-          <!-- QR Code PIX (simulado) -->
-          <div id="pix-area" style="display:none;">
-            <div class="pix-qr">
-              <canvas id="pix-canvas" width="160" height="160"></canvas>
-            </div>
-            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:1px;">
-              Chave PIX: <span style="color:var(--emerald);" id="pix-key">—</span>
-            </div>
-          </div>
-
-          <!-- Parcelas (crédito) -->
-          <div id="credito-area" style="display:none;" class="form-group">
-            <label class="form-label">Número de parcelas</label>
-            <select class="form-select" id="p-parcelas">
-              <option value="1">À vista (1×)</option>
-              <option value="2">2× sem juros</option>
-              <option value="3">3× sem juros</option>
-              <option value="6">6× (1,99% a.m.)</option>
-              <option value="12">12× (1,99% a.m.)</option>
-            </select>
-          </div>
-
-          <button class="btn btn-primary btn-full" id="btn-cobrar" onclick="processar()" style="margin-top:8px;">
-            Processar Pagamento
-          </button>
-        </div>
-      </div>
-
-      <!-- Confirmação e histórico -->
-      <div>
-        <div class="confirm-box" id="confirm-box">
-          <div class="nfe-doc-title" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:12px;">✓ PAGAMENTO CONFIRMADO</div>
-          <div id="confirm-corpo"></div>
-        </div>
-
-        <div class="panel" style="margin-top:20px;">
-          <div class="panel-header">Recebimentos Recentes</div>
-          <div class="panel-body no-pad" id="hist-pagamentos">
-            <div class="empty-state">Carregando...</div>
-          </div>
-        </div>
-
-        <!-- Taxas por método -->
+    <!-- ── TAB: PROCESSAR ── -->
+    <div class="tab-content active" id="tab-processar">
+      <div class="two-col">
         <div class="panel">
-          <div class="panel-header">Comparativo de Taxas</div>
+          <div class="panel-header">Processar Cobrança</div>
           <div class="panel-body">
-            <table style="width:100%;border-collapse:collapse;font-size:12px;">
-              <thead>
-                <tr style="border-bottom:1px solid var(--border);">
+            <div class="alerta-warn" id="alerta-pix" style="display:none;">
+              ⚠ Chave PIX não configurada.
+              <a href="#" onclick="setTab('config');return false;" style="color:var(--yellow);text-decoration:underline;">Configure aqui</a>
+              para gerar QR Codes reais.
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Descrição da cobrança *</label>
+              <input class="form-input" id="p-desc" placeholder="ex: Corte de cabelo, Entrega de pedido">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Valor (R$) *</label>
+                <input class="form-input" id="p-val" type="number" step="0.01" min="0.01" placeholder="0,00" oninput="atualizarTotal()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">CPF do cliente (opcional)</label>
+                <input class="form-input" id="p-cpf" placeholder="000.000.000-00">
+              </div>
+            </div>
+
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin:16px 0 10px;">Forma de Pagamento</div>
+            <div class="three-col" style="gap:10px;margin-bottom:16px;">
+              <div class="pag-method selected" id="pm-pix"      onclick="selPag('pix')"><div class="pag-method-icon">📱</div><div class="pag-method-name">PIX</div></div>
+              <div class="pag-method"          id="pm-debito"   onclick="selPag('debito')"><div class="pag-method-icon">💳</div><div class="pag-method-name">Débito</div></div>
+              <div class="pag-method"          id="pm-credito"  onclick="selPag('credito')"><div class="pag-method-icon">💳</div><div class="pag-method-name">Crédito</div></div>
+              <div class="pag-method"          id="pm-dinheiro" onclick="selPag('dinheiro')"><div class="pag-method-icon">💵</div><div class="pag-method-name">Dinheiro</div></div>
+              <div class="pag-method"          id="pm-boleto"   onclick="selPag('boleto')"><div class="pag-method-icon">📜</div><div class="pag-method-name">Boleto</div></div>
+            </div>
+
+            <!-- QR PIX real -->
+            <div id="pix-area" style="display:none;">
+              <div class="pix-qr-wrapper">
+                <div id="pix-qr-canvas"></div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#666;text-align:center;">
+                  Chave: <span id="pix-key-display" style="color:#00c896;">—</span>
+                </div>
+                <div id="pix-emv-box" class="pix-emv-box" style="display:none;"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                  <button class="btn btn-sm btn-ghost" onclick="copiarEMV()">📋 Pix Copia e Cola</button>
+                  <button class="btn btn-sm btn-ghost" onclick="copiarChave()">🔑 Copiar chave</button>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:8px;">
+                QR Code padrão Banco Central (EMV). Funciona em qualquer banco brasileiro.
+              </div>
+            </div>
+
+            <!-- aviso cartão/boleto -->
+            <div id="gateway-area" style="display:none;background:rgba(0,200,150,.03);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:6px;">Maquininha / Gateway</div>
+              <div style="font-size:12px;color:var(--text-mid);">Débito, crédito e boleto requerem maquininha física (Stone, PagSeguro, Mercado Pago). O lançamento será registrado normalmente no caixa.</div>
+            </div>
+
+            <div id="credito-area" style="display:none;" class="form-group">
+              <label class="form-label">Número de parcelas</label>
+              <select class="form-select" id="p-parcelas">
+                <option value="1">À vista (1×)</option>
+                <option value="2">2× sem juros</option>
+                <option value="3">3× sem juros</option>
+                <option value="6">6× (1,99% a.m.)</option>
+                <option value="12">12× (1,99% a.m.)</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary btn-full" id="btn-cobrar" onclick="processar()" style="margin-top:8px;">
+              Confirmar e Registrar
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <div class="confirm-box" id="confirm-box">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:12px;">✓ PAGAMENTO CONFIRMADO</div>
+            <div id="confirm-corpo"></div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-header">Comparativo de Taxas</div>
+            <div class="panel-body">
+              <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                <thead><tr style="border-bottom:1px solid var(--border);">
                   <th style="padding:6px;text-align:left;color:var(--text-dim);">Método</th>
                   <th style="padding:6px;text-align:right;color:var(--text-dim);">Taxa</th>
                   <th style="padding:6px;text-align:right;color:var(--text-dim);">Liquidação</th>
-                  <th style="padding:6px;text-align:right;color:var(--text-dim);">Valor líquido*</th>
-                </tr>
-              </thead>
-              <tbody id="taxa-body"></tbody>
-            </table>
-            <div class="text-dim" style="font-size:10px;margin-top:8px;">*Calculado sobre o valor informado acima.</div>
+                  <th style="padding:6px;text-align:right;color:var(--text-dim);">Líquido*</th>
+                </tr></thead>
+                <tbody id="taxa-body"></tbody>
+              </table>
+              <div class="text-dim" style="font-size:10px;margin-top:8px;">*Calculado sobre o valor informado.</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- ── TAB: CONFIGURAR PIX ── -->
+    <div class="tab-content" id="tab-config">
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">⚙ Configurar Chave PIX</div>
+          <div class="panel-body">
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:18px;line-height:1.7;">
+              Configure sua chave PIX uma única vez. Ela será usada em todos os QR Codes e links de cobrança.
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de chave *</label>
+              <select class="form-select" id="cfg-tipo" onchange="atualizarPlaceholderChave()">
+                <option value="cpf">CPF</option>
+                <option value="cnpj">CNPJ</option>
+                <option value="email">E-mail</option>
+                <option value="telefone">Telefone (+55...)</option>
+                <option value="aleatoria">Chave aleatória (EVP)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Chave PIX *</label>
+              <input class="form-input" id="cfg-chave" placeholder="Digite sua chave PIX">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nome do recebedor *</label>
+              <input class="form-input" id="cfg-nome" placeholder="ex: Barbearia do Joao" maxlength="25">
+              <div class="form-hint">Máx. 25 caracteres · aparece no app do pagador</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cidade</label>
+              <input class="form-input" id="cfg-cidade" value="UBERLANDIA" maxlength="15">
+              <div class="form-hint">Máx. 15 caracteres, sem acentos</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <button class="btn btn-primary" onclick="salvarConfig()">💾 Salvar</button>
+              <button class="btn btn-ghost" onclick="testarQR()">🔍 Testar QR</button>
+            </div>
+            <div id="cfg-preview" style="display:none;margin-top:20px;text-align:center;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:12px;">Preview — Escaneie para testar</div>
+              <div class="pix-qr-wrapper" style="display:inline-flex;">
+                <div id="cfg-qr-canvas"></div>
+                <div style="font-size:10px;color:#666;font-family:'DM Mono',monospace;" id="cfg-preview-info"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:18px;margin-bottom:16px;">
+            <div class="pix-config-badge" id="cfg-status-badge">● Não configurado</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px;">Configuração atual</div>
+            <div id="cfg-atual" style="font-size:13px;color:var(--text-mid);">Nenhuma chave configurada.</div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">📋 Como funciona</div>
+            <div class="panel-body">
+              <div style="font-size:12px;color:var(--text-dim);line-height:2;">
+                <div><span style="color:var(--emerald);">1.</span> Configure sua chave PIX (esta aba)</div>
+                <div><span style="color:var(--emerald);">2.</span> Em "Processar Cobrança" → PIX → QR Code gerado automaticamente</div>
+                <div><span style="color:var(--emerald);">3.</span> Em "Link de Cobrança" → gere links para WhatsApp</div>
+                <div><span style="color:var(--emerald);">4.</span> O cliente acessa o portal e paga pelo app do banco</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: LINK DE COBRANÇA ── -->
+    <div class="tab-content" id="tab-link">
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">🔗 Gerar Link de Cobrança</div>
+          <div class="panel-body">
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">
+              Gere um link para enviar ao cliente por WhatsApp. Ele abre uma página pública com QR Code PIX.
+            </div>
+            <div class="form-group">
+              <label class="form-label">Valor (R$)</label>
+              <input class="form-input" id="link-val" type="number" step="0.01" min="0" placeholder="Deixe vazio para o cliente informar">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descrição</label>
+              <input class="form-input" id="link-desc" placeholder="ex: Mensalidade Agosto, Consulta...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Referência (opcional)</label>
+              <input class="form-input" id="link-ref" placeholder="ex: PED001" maxlength="25">
+            </div>
+            <button class="btn btn-primary" onclick="gerarLink()">Gerar Link</button>
+
+            <div id="link-resultado" style="display:none;margin-top:20px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:8px;">Link gerado</div>
+              <div class="link-box" id="link-url"></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                <button class="btn btn-sm btn-primary" onclick="copiarLink()">📋 Copiar</button>
+                <button class="btn btn-sm btn-ghost"   onclick="window.open(linkGerado,'_blank')">🌐 Abrir</button>
+                <button class="btn btn-sm btn-ghost"   onclick="compartilharWhatsApp()">💬 WhatsApp</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">💡 Dicas</div>
+          <div class="panel-body">
+            <div style="font-size:12px;color:var(--text-dim);line-height:2.1;">
+              <div>• Valor em branco → cliente digita o valor</div>
+              <div>• Use a referência para rastrear pedidos</div>
+              <div>• Funciona por WhatsApp, e-mail ou SMS</div>
+              <div>• Cliente não precisa de login</div>
+              <div>• Compatible com qualquer banco ou carteira</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: HISTÓRICO ── -->
+    <div class="tab-content" id="tab-historico">
+      <div class="panel">
+        <div class="panel-header">
+          Recebimentos Recentes
+          <button class="btn btn-sm btn-ghost" onclick="carregarHistorico()">↻ Atualizar</button>
+        </div>
+        <div class="panel-body no-pad" id="hist-pagamentos">
+          <div class="empty-state">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 <script src="api.js"></script>
 <script>
-let pagSel = 'pix';
-const TAXAS = [
-  { nome:'PIX',               tx:0,      dias:'Imediato',  id:'pix' },
-  { nome:'Débito',            tx:0.012,  dias:'1 dia útil',id:'debito' },
-  { nome:'Crédito à vista',   tx:0.024,  dias:'30 dias',   id:'credito' },
-  { nome:'Crédito parcelado', tx:0.035,  dias:'30/60/90d', id:'credito' },
-  { nome:'Boleto',            tx:2.99,   dias:'2 dias úteis', id:'boleto', fixed:true },
-];
+/* ───────────────────────────────────────
+   PIX EMV — padrão Banco Central (BCB)
+─────────────────────────────────────── */
+function gerarPixEMV({ chave, nome, cidade, valor, txid }) {
+  const f = (id, v) => { const s=String(v); return `${id}${s.length.toString().padStart(2,'0')}${s}`; };
+  const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9 ]/g,'').trim().toUpperCase();
+  const normNome   = norm(nome||'RECEBEDOR').slice(0,25);
+  const normCidade = norm(cidade||'UBERLANDIA').slice(0,15);
+  const normTxid   = (txid||'***').replace(/[^A-Za-z0-9]/g,'').slice(0,25)||'***';
+  const gui = f('00','br.gov.bcb.pix') + f('01',(chave||'').trim());
+  const ma  = f('26',gui);
+  const ad  = f('62',f('05',normTxid));
+  let p = f('00','01')+ma+f('52','0000')+f('53','986');
+  if(valor && parseFloat(valor)>0) p += f('54',parseFloat(valor).toFixed(2));
+  p += f('58','BR')+f('59',normNome)+f('60',normCidade)+ad+'6304';
+  let crc=0xFFFF;
+  for(const c of p){ crc^=c.charCodeAt(0)<<8; for(let i=0;i<8;i++) crc=(crc&0x8000)?((crc<<1)^0x1021)&0xFFFF:(crc<<1)&0xFFFF; }
+  return p+crc.toString(16).toUpperCase().padStart(4,'0');
+}
 
-document.addEventListener('DOMContentLoaded', () => {
-  maskCpf(document.getElementById('p-cpf'));
-  atualizarTotal();
-  carregarHistorico();
+function renderQR(containerId, text) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  new QRCode(el, { text, width:160, height:160, correctLevel:QRCode.CorrectLevel.M });
+}
+
+/* ── CONFIG PIX ── */
+const getConfig = () => ({
+  chave:  localStorage.getItem('sb_pix_chave')||'',
+  tipo:   localStorage.getItem('sb_pix_tipo')||'cpf',
+  nome:   localStorage.getItem('sb_pix_nome')||'',
+  cidade: localStorage.getItem('sb_pix_cidade')||'UBERLANDIA',
 });
 
+function carregarConfigUI() {
+  const c = getConfig();
+  document.getElementById('cfg-chave').value  = c.chave;
+  document.getElementById('cfg-tipo').value   = c.tipo;
+  document.getElementById('cfg-nome').value   = c.nome;
+  document.getElementById('cfg-cidade').value = c.cidade||'UBERLANDIA';
+  const badge = document.getElementById('cfg-status-badge');
+  const atual = document.getElementById('cfg-atual');
+  if (c.chave && c.nome) {
+    badge.className='pix-config-badge ok'; badge.textContent='● Configurado';
+    atual.innerHTML=`<div style="margin-bottom:5px;"><span style="color:var(--text-dim);font-size:11px;">Tipo:</span> <b>${c.tipo.toUpperCase()}</b></div>
+      <div style="margin-bottom:5px;"><span style="color:var(--text-dim);font-size:11px;">Chave:</span> <b style="color:var(--emerald);font-family:'DM Mono',monospace;">${c.chave}</b></div>
+      <div style="margin-bottom:5px;"><span style="color:var(--text-dim);font-size:11px;">Nome:</span> <b>${c.nome}</b></div>
+      <div><span style="color:var(--text-dim);font-size:11px;">Cidade:</span> <b>${c.cidade}</b></div>`;
+    document.getElementById('alerta-pix').style.display='none';
+    document.getElementById('pix-key-display').textContent=c.chave;
+  } else {
+    badge.className='pix-config-badge miss'; badge.textContent='● Não configurado';
+    atual.textContent='Nenhuma chave PIX configurada.';
+    document.getElementById('alerta-pix').style.display='block';
+  }
+}
+
+function salvarConfig() {
+  const chave  = document.getElementById('cfg-chave').value.trim();
+  const tipo   = document.getElementById('cfg-tipo').value;
+  const nome   = document.getElementById('cfg-nome').value.trim();
+  const cidade = document.getElementById('cfg-cidade').value.trim()||'UBERLANDIA';
+  if(!chave||!nome){ toast('Chave PIX e nome são obrigatórios.','err'); return; }
+  localStorage.setItem('sb_pix_chave', chave);
+  localStorage.setItem('sb_pix_tipo',  tipo);
+  localStorage.setItem('sb_pix_nome',  nome);
+  localStorage.setItem('sb_pix_cidade',cidade);
+  toast('✓ Configuração PIX salva!');
+  carregarConfigUI();
+}
+
+function testarQR() {
+  const chave = document.getElementById('cfg-chave').value.trim();
+  const nome  = document.getElementById('cfg-nome').value.trim();
+  const cidade= document.getElementById('cfg-cidade').value.trim()||'UBERLANDIA';
+  if(!chave||!nome){ toast('Preencha chave e nome primeiro.','err'); return; }
+  const emv = gerarPixEMV({chave,nome,cidade,valor:0,txid:'TESTE'});
+  renderQR('cfg-qr-canvas', emv);
+  document.getElementById('cfg-preview-info').textContent='Chave: '+chave+' · R$ livre';
+  document.getElementById('cfg-preview').style.display='block';
+}
+
+function atualizarPlaceholderChave() {
+  const pl={cpf:'000.000.000-00',cnpj:'00.000.000/0000-00',email:'seu@email.com',telefone:'+5534999990000',aleatoria:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'};
+  document.getElementById('cfg-chave').placeholder=pl[document.getElementById('cfg-tipo').value]||'';
+}
+
+/* ── PAGAMENTO ── */
+let pagSel='pix', currentEMV='';
+const TAXAS=[
+  {nome:'PIX',              tx:0,     dias:'Imediato',    id:'pix'},
+  {nome:'Débito',           tx:0.012, dias:'1 dia útil',  id:'debito'},
+  {nome:'Crédito à vista',  tx:0.024, dias:'30 dias',     id:'credito'},
+  {nome:'Crédito parcelado',tx:0.035, dias:'30/60/90d',   id:'credito'},
+  {nome:'Boleto',           tx:2.99,  dias:'2 dias úteis',id:'boleto',fixed:true},
+];
+
 function selPag(id) {
-  pagSel = id;
-  ['pix','debito','credito','dinheiro','boleto'].forEach(m => {
-    document.getElementById('pm-'+m).classList.toggle('selected', m===id);
+  pagSel=id;
+  ['pix','debito','credito','dinheiro','boleto'].forEach(m=>{
+    document.getElementById('pm-'+m).classList.toggle('selected',m===id);
   });
-  document.getElementById('pix-area').style.display      = id==='pix'?'block':'none';
-  document.getElementById('credito-area').style.display  = id==='credito'?'block':'none';
+  document.getElementById('pix-area').style.display     =id==='pix'?'block':'none';
+  document.getElementById('credito-area').style.display =id==='credito'?'block':'none';
+  document.getElementById('gateway-area').style.display =(id==='debito'||id==='credito'||id==='boleto')?'block':'none';
   atualizarTotal();
-  if (id==='pix') desenharQR();
+  if(id==='pix') atualizarQRPix();
 }
 
 function atualizarTotal() {
-  const val = parseFloat(document.getElementById('p-val').value)||0;
-  renderTaxas(val);
+  renderTaxas(parseFloat(document.getElementById('p-val').value)||0);
+  if(pagSel==='pix') atualizarQRPix();
+}
+
+function atualizarQRPix() {
+  const cfg=getConfig(); if(!cfg.chave||!cfg.nome) return;
+  const val=parseFloat(document.getElementById('p-val').value)||0;
+  const txid=Date.now().toString(36).toUpperCase().slice(-10);
+  currentEMV=gerarPixEMV({chave:cfg.chave,nome:cfg.nome,cidade:cfg.cidade,valor:val,txid});
+  renderQR('pix-qr-canvas',currentEMV);
+  const box=document.getElementById('pix-emv-box');
+  box.textContent=currentEMV; box.style.display='block';
+  document.getElementById('pix-key-display').textContent=cfg.chave;
+}
+
+function copiarEMV() {
+  if(!currentEMV){toast('Gere um QR Code primeiro.','err');return;}
+  copiarTexto(currentEMV,'✓ Pix Copia e Cola copiado!');
+}
+function copiarChave() {
+  const c=getConfig(); if(!c.chave){toast('Configure sua chave PIX primeiro.','err');return;}
+  copiarTexto(c.chave,'✓ Chave PIX copiada!');
+}
+function copiarTexto(txt,msg) {
+  navigator.clipboard.writeText(txt).then(()=>toast(msg)).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+    toast(msg);
+  });
 }
 
 function renderTaxas(val) {
-  document.getElementById('taxa-body').innerHTML = TAXAS.map(t => {
-    const taxa = t.fixed ? t.tx : val * t.tx;
-    const liq  = val > 0 ? val - taxa : 0;
+  document.getElementById('taxa-body').innerHTML=TAXAS.map(t=>{
+    const taxa=t.fixed?t.tx:val*t.tx; const liq=val>0?val-taxa:0;
     return `<tr style="border-bottom:1px solid rgba(0,200,150,.05);">
       <td style="padding:7px 6px;">${t.nome}</td>
       <td style="padding:7px 6px;text-align:right;color:var(--red);">${t.fixed?'R$'+t.tx.toFixed(2):(t.tx*100).toFixed(1)+'%'}</td>
@@ -203,88 +460,99 @@ function renderTaxas(val) {
   }).join('');
 }
 
-function desenharQR() {
-  const canvas = document.getElementById('pix-canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,160,160);
-  ctx.fillStyle='#000';
-  for (let i=0;i<20;i++) for(let j=0;j<20;j++) {
-    if (Math.random()>.5) ctx.fillRect(8+i*7,8+j*7,6,6);
-  }
-  // Corner squares
-  [[8,8],[8,118],[118,8]].forEach(([x,y]) => {
-    ctx.fillStyle='#000'; ctx.fillRect(x,y,28,28);
-    ctx.fillStyle='#fff'; ctx.fillRect(x+4,y+4,20,20);
-    ctx.fillStyle='#000'; ctx.fillRect(x+8,y+8,12,12);
-  });
-  document.getElementById('pix-key').textContent = '12345678000190';
-}
-
 async function processar() {
-  const desc = document.getElementById('p-desc').value.trim();
-  const val  = parseFloat(document.getElementById('p-val').value)||0;
-  const cpf  = document.getElementById('p-cpf').value.trim();
-  if (!desc||val<=0) { toast('Preencha descrição e valor.','err'); return; }
-
-  const nomes = {pix:'PIX',debito:'Cartão de Débito',credito:'Cartão de Crédito',dinheiro:'Dinheiro',boleto:'Boleto'};
-  const btn = document.getElementById('btn-cobrar');
-  const restore = spin(btn,'Processando...');
-
-  await new Promise(r => setTimeout(r, 1200)); // simula latência
-
-  const txInfo  = TAXAS.find(t=>t.id===pagSel) || TAXAS[0];
-  const taxaVal = txInfo.fixed ? txInfo.tx : val * txInfo.tx;
-  const liquido = val - taxaVal;
-  const tid     = Date.now().toString(36).toUpperCase();
-  const agora   = new Date().toLocaleString('pt-BR');
-
-  // Lança no caixa
+  const desc=document.getElementById('p-desc').value.trim();
+  const val=parseFloat(document.getElementById('p-val').value)||0;
+  const cpf=document.getElementById('p-cpf').value.trim();
+  if(!desc||val<=0){toast('Preencha descrição e valor.','err');return;}
+  const nomes={pix:'PIX',debito:'Cartão de Débito',credito:'Cartão de Crédito',dinheiro:'Dinheiro',boleto:'Boleto'};
+  const btn=document.getElementById('btn-cobrar');
+  const restore=spin(btn,'Processando...');
+  await new Promise(r=>setTimeout(r,800));
+  const txInfo=TAXAS.find(t=>t.id===pagSel)||TAXAS[0];
+  const taxaVal=txInfo.fixed?txInfo.tx:val*txInfo.tx;
+  const liquido=val-taxaVal;
+  const tid=Date.now().toString(36).toUpperCase();
   try {
-    await post(API.lancamentos, {
-      tipo:'ENTRADA', descricao: desc + (cpf?' — CPF '+cpf:''),
-      valor:val, formaPagamento:nomes[pagSel], categoria:'Vendas', origem:'SISTEMA'
-    });
-  } catch {}
-
-  const box = document.getElementById('confirm-box');
-  document.getElementById('confirm-corpo').innerHTML = `
+    await post(API.lancamentos,{tipo:'ENTRADA',descricao:desc+(cpf?' — CPF '+cpf:''),
+      valor:val,formaPagamento:nomes[pagSel],categoria:'Vendas',origem:'SISTEMA'});
+  } catch{}
+  const box=document.getElementById('confirm-box');
+  document.getElementById('confirm-corpo').innerHTML=`
     <div class="confirm-row"><span>Descrição</span><span>${desc}</span></div>
-    <div class="confirm-row"><span>Valor cobrado</span><span style="color:var(--emerald)">${brl(val)}</span></div>
-    <div class="confirm-row"><span>Taxa (${txInfo.fixed?'R$'+txInfo.tx.toFixed(2):(txInfo.tx*100).toFixed(1)+'%'})</span><span style="color:var(--red)">-${brl(taxaVal)}</span></div>
-    <div class="confirm-row"><span>Valor líquido</span><span style="color:var(--emerald)">${brl(liquido)}</span></div>
+    <div class="confirm-row"><span>Valor</span><span style="color:var(--emerald)">${brl(val)}</span></div>
+    <div class="confirm-row"><span>Taxa</span><span style="color:var(--red)">-${brl(taxaVal)}</span></div>
+    <div class="confirm-row"><span>Líquido</span><span style="color:var(--emerald)">${brl(liquido)}</span></div>
     <div class="confirm-row"><span>Forma</span><span>${nomes[pagSel]}</span></div>
-    ${cpf?`<div class="confirm-row"><span>CPF do cliente</span><span>${cpf}</span></div>`:''}
-    <div class="confirm-row"><span>Horário</span><span>${agora}</span></div>
-    <div class="confirm-row"><span>ID da transação</span><span class="text-mono" style="font-size:10px;color:rgba(0,200,150,.5);">${tid}</span></div>`;
-  box.classList.add('show');
-  box.scrollIntoView({ behavior:'smooth' });
-
-  toast('✓ Pagamento de '+brl(val)+' via '+nomes[pagSel]+' confirmado!');
-  document.getElementById('p-desc').value='';
-  document.getElementById('p-val').value='';
-  restore();
-  carregarHistorico();
+    ${cpf?`<div class="confirm-row"><span>CPF</span><span>${cpf}</span></div>`:''}
+    <div class="confirm-row"><span>Horário</span><span>${new Date().toLocaleString('pt-BR')}</span></div>
+    <div class="confirm-row"><span>ID</span><span style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(0,200,150,.5);">${tid}</span></div>`;
+  box.classList.add('show'); box.scrollIntoView({behavior:'smooth'});
+  toast('✓ '+brl(val)+' via '+nomes[pagSel]+' registrado!');
+  document.getElementById('p-desc').value=''; document.getElementById('p-val').value='';
+  currentEMV=''; document.getElementById('pix-qr-canvas').innerHTML='';
+  document.getElementById('pix-emv-box').style.display='none';
+  restore(); carregarHistorico();
 }
 
 async function carregarHistorico() {
   try {
-    const lista = (await get(`${API.lancamentos}/hoje`)).filter(l=>l.tipo==='ENTRADA').reverse().slice(0,10);
-    const el = document.getElementById('hist-pagamentos');
-    if (!lista.length) { el.innerHTML='<div class="empty-state">Nenhum recebimento hoje.</div>'; return; }
-    el.innerHTML = lista.map(l => `
+    const lista=(await get(`${API.lancamentos}/hoje`)).filter(l=>l.tipo==='ENTRADA').reverse().slice(0,15);
+    const el=document.getElementById('hist-pagamentos');
+    if(!lista.length){el.innerHTML='<div class="empty-state">Nenhum recebimento hoje.</div>';return;}
+    el.innerHTML=lista.map(l=>`
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(0,200,150,.05);">
-        <div>
-          <div style="font-size:13px;">${l.descricao}</div>
-          <div class="text-dim" style="font-size:10px;">${l.formaPagamento||'—'} · ${dt(l.data)}</div>
-        </div>
+        <div><div style="font-size:13px;">${l.descricao}</div>
+        <div class="text-dim" style="font-size:10px;">${l.formaPagamento||'—'} · ${dt(l.data)}</div></div>
         <span class="text-mono text-green">${brl(l.valor)}</span>
       </div>`).join('');
-  } catch {}
+  } catch{document.getElementById('hist-pagamentos').innerHTML='<div class="empty-state">Erro ao carregar.</div>';}
 }
 
-// Init
-selPag('pix');
-renderTaxas(0);
+/* ── LINK DE COBRANÇA ── */
+let linkGerado='';
+function gerarLink() {
+  const cfg=getConfig();
+  if(!cfg.chave||!cfg.nome){toast('Configure sua chave PIX primeiro.','err');setTab('config');return;}
+  const val=document.getElementById('link-val').value;
+  const desc=document.getElementById('link-desc').value.trim();
+  const ref=document.getElementById('link-ref').value.trim();
+  const params=new URLSearchParams();
+  params.set('pix',cfg.chave); params.set('nome',cfg.nome); params.set('cidade',cfg.cidade);
+  if(val) params.set('valor',parseFloat(val).toFixed(2));
+  if(desc) params.set('desc',desc);
+  if(ref)  params.set('ref',ref);
+  const base=window.location.href.replace(/pagamentos\.html.*/,'');
+  linkGerado=`${base}portal-pagamento.html?${params.toString()}`;
+  document.getElementById('link-url').textContent=linkGerado;
+  document.getElementById('link-resultado').style.display='block';
+}
+function copiarLink(){copiarTexto(linkGerado,'✓ Link copiado!');}
+function compartilharWhatsApp(){
+  const desc=document.getElementById('link-desc').value.trim();
+  const val=document.getElementById('link-val').value;
+  const msg=encodeURIComponent(`Olá! Segue o link para pagamento${desc?' de '+desc:''}${val?' — R$ '+parseFloat(val).toFixed(2):''}:\n${linkGerado}`);
+  window.open(`https://wa.me/?text=${msg}`,'_blank');
+}
+
+/* ── TABS ── */
+function setTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  const btn=document.getElementById('tbtn-'+id);
+  if(btn) btn.classList.add('active');
+  if(id==='historico') carregarHistorico();
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  maskCpf(document.getElementById('p-cpf'));
+  carregarConfigUI();
+  atualizarPlaceholderChave();
+  selPag('pix');
+  renderTaxas(0);
+});
 </script>
 </body>
 </html>

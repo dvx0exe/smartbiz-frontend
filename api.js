@@ -1,4 +1,4 @@
-var BACKEND_URL = localStorage.getItem('sb_backend_url') || 'http://localhost:8080';
+var BACKEND_URL = localStorage.getItem('sb_backend_url') || 'https://smartbiz-api.fly.dev';
 
 var BASE_AUTH = BACKEND_URL;
 var BASE_API  = BACKEND_URL + '/api';

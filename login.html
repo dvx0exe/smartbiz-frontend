@@ -152,7 +152,7 @@
           <span class="server-status" id="server-status">—</span>
         </div>
         <div class="server-fields" id="server-fields">
-          <input type="text" id="server-input" class="server-input" placeholder="https://xxxx.ngrok-free.dev"/>
+          <input type="text" id="server-input" class="server-input" placeholder="https://smartbiz-api.fly.dev"/>
           <button class="server-save" onclick="salvarServidor()">Salvar e recarregar</button>
           <div class="server-hint">Cole aqui a URL do ngrok fornecida pelo administrador.</div>
         </div>
@@ -164,7 +164,7 @@
   <script src="api.js"></script>
   <script>
     var configOpen = false;
-    var backendUrl = localStorage.getItem('sb_backend_url') || 'http://localhost:8080';
+    var backendUrl = localStorage.getItem('sb_backend_url') || 'https://smartbiz-api.fly.dev';
     var isNgrok    = backendUrl.includes('ngrok');
 
     function init() {

@@ -419,7 +419,7 @@ let todosNegocios = [];
 
 async function carregarNegocios() {
   try {
-    const BACKEND = localStorage.getItem('sb_backend_url') || 'http://localhost:8080';
+    const BACKEND = localStorage.getItem('sb_backend_url') || 'https://smartbiz-api.fly.dev';
     const token   = localStorage.getItem('sb_token') || '';
     const headers = { 'Content-Type':'application/json', 'ngrok-skip-browser-warning':'true' };
     if (token) headers['Authorization'] = 'Bearer ' + token;

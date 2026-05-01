@@ -154,7 +154,7 @@
         <div class="server-fields" id="server-fields">
           <input type="text" id="server-input" class="server-input" placeholder="https://smartbiz-api.fly.dev"/>
           <button class="server-save" onclick="salvarServidor()">Salvar e recarregar</button>
-          <div class="server-hint">Cole aqui a URL do ngrok fornecida pelo administrador.</div>
+          <div class="server-hint">Cole aqui a URL do backend se precisar alterar.</div>
         </div>
       </div>
     </div>
@@ -168,16 +168,14 @@
     var isNgrok    = backendUrl.includes('ngrok');
 
     function init() {
-      // Atualiza botão Google
       document.getElementById('btn-google').href = backendUrl + '/oauth2/authorization/google';
 
-      // Atualiza botão "Abrir servidor"
       document.getElementById('btn-visit').href = backendUrl;
 
       // Status
       var el = document.getElementById('server-status');
       if (!isNgrok) {
-        el.textContent = 'local';
+        el.textContent = 'fly.dev';
         el.className   = 'server-status offline';
       } else {
         var short = backendUrl.replace('https://', '').split('.')[0];
@@ -187,11 +185,9 @@
 
       document.getElementById('server-input').value = backendUrl;
 
-      // Aviso ngrok: mostra só se for ngrok E ainda não verificou
       if (isNgrok && !localStorage.getItem('ngrok_accepted_' + backendUrl)) {
         document.getElementById('ngrok-warn').classList.add('show');
 
-        // Quando a aba do ngrok fechar/perder foco e voltar, marca como aceito
         window.addEventListener('focus', function onFocus() {
           localStorage.setItem('ngrok_accepted_' + backendUrl, '1');
           document.getElementById('ngrok-warn').classList.remove('show');
@@ -208,7 +204,6 @@
     function salvarServidor() {
       var val = document.getElementById('server-input').value.trim().replace(/\/$/, '');
       if (!val) return;
-      // Limpa aceitação anterior ao trocar URL
       localStorage.removeItem('ngrok_accepted_' + backendUrl);
       localStorage.setItem('sb_backend_url', val);
       location.reload();

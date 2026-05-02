@@ -299,7 +299,7 @@ async function finalizarVenda() {
 async function cancelarVenda(id) {
   if (!confirm('Cancelar esta venda? O estoque será estornado.')) return;
   try {
-    await patch(`${API.vendas}/${id}/cancelar`);
+    await post(`${API.vendas}/${id}/cancelar`);
     toast('✓ Venda cancelada e estoque estornado.');
     carregarVendas();
   } catch(e) { toast('Erro: '+e.message,'err'); }

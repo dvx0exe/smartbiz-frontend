@@ -235,7 +235,7 @@ async function emitirAvulsa() {
 
 async function cancelar(id) {
   if (!confirm('Cancelar esta NF-e?')) return;
-  try { await patch(`${API.nfe}/${id}/cancelar`); toast('✓ NF-e cancelada.'); carregar(); }
+  try { await post(`${API.nfe}/${id}/cancelar`); toast('✓ NF-e cancelada.'); carregar(); }
   catch(e) { toast('Erro: '+e.message,'err'); }
 }
 

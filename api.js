@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Limpa o sidebar footer (apenas versão)
   const footer = document.querySelector('.sidebar-footer');
-  if (footer) footer.innerHTML = `<p>SmartBiz v1.0 · Uniube 2026</p>`;
+  if (footer) footer.innerHTML = `<p>SmartBiz v1.0</p>`;
 
   // Topbar direita: email + role + botão Sair (substitui API Conectada + relógio)
   const topbarRight = document.querySelector('.topbar-right');

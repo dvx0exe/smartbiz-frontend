@@ -43,7 +43,8 @@ body::before {
 /* ══ SIDEBAR ══════════════════════════════════════════════════ */
 .sidebar {
   width:var(--sidebar-w);
-  min-height:100vh;
+  height:100vh;
+  max-height:100vh;
   background:var(--ink2);
   border-right:1px solid var(--border);
   display:flex;
@@ -52,6 +53,8 @@ body::before {
   top:0; left:0;
   z-index:50;
   transition:transform .25s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;
+  overflow-x:hidden;
 }
 .sidebar-logo {
   padding:22px 20px;
@@ -97,7 +100,7 @@ body::before {
 .nav-item:hover { color:var(--text); background:var(--emerald-glow); }
 .nav-item.active { color:var(--emerald); background:rgba(0,200,150,.06); border-left-color:var(--emerald); }
 .nav-icon { width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
-.sidebar-footer { margin-top:auto; padding:16px 20px; border-top:1px solid var(--border); }
+.sidebar-footer { margin-top:auto; padding:16px 20px; border-top:1px solid var(--border); flex-shrink:0; }
 .sidebar-footer p { font-family:'DM Mono', monospace; font-size:9px; letter-spacing:1px; color:var(--text-dim); text-transform:uppercase; }
 .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-family:'DM Mono', monospace; font-size:9px; padding:1px 6px; border-radius:10px; letter-spacing:.5px; }
 

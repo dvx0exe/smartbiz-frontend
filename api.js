@@ -162,25 +162,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (role !== 'ADMIN') el.style.display = 'none';
   });
 
+  // Limpa o sidebar footer (apenas versão)
   const footer = document.querySelector('.sidebar-footer');
-  if (footer && email) {
-    footer.innerHTML = `
-      <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--text-mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${email}</div>
-        <span class="badge ${role==='ADMIN'?'badge-green':'badge-blue'}" style="margin-top:4px;font-size:8px;">${role}</span>
-      </div>
-      ${nome ? `<div style="font-size:10px;color:var(--emerald);margin-bottom:8px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🏪 ${nome}</div>` : ''}
-      <button onclick="logout()" class="btn btn-full btn-sm" style="background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.35);color:#ff6b6b;margin-top:4px;letter-spacing:1px;">⏻ SAIR</button>
-    `;
-  }
+  if (footer) footer.innerHTML = `<p>SmartBiz v1.0 · Uniube 2026</p>`;
 
+  // Topbar direita: email + role + botão Sair (substitui API Conectada + relógio)
   const topbarRight = document.querySelector('.topbar-right');
-  if (topbarRight && role === 'ADMIN' && nome) {
-    const chip = document.createElement('a');
-    chip.href = 'admin-dashboard.html';
-    chip.style.cssText = 'font-family:"DM Mono",monospace;font-size:10px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:3px;letter-spacing:1px;text-decoration:none;white-space:nowrap;';
-    chip.innerHTML = `← Todos os Negócios`;
-    topbarRight.prepend(chip);
+  if (topbarRight && email) {
+    topbarRight.innerHTML = `
+      ${ role === 'ADMIN' && nome ? `<a href="admin-dashboard.html" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:3px;letter-spacing:1px;text-decoration:none;white-space:nowrap;">← Todos os Negócios</a>` : '' }
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+        <span style="font-size:11px;color:var(--text-mid);font-family:'DM Mono',monospace;">${email}</span>
+        <span class="badge ${role==='ADMIN'?'badge-green':'badge-blue'}" style="font-size:8px;">${role}</span>
+      </div>
+      <button onclick="logout()" style="background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.4);color:#ff6b6b;padding:6px 14px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;">⏻ SAIR</button>
+    `;
   }
 });
 

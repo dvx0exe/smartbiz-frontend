@@ -37,44 +37,67 @@
   </div>
 
   <div class="content">
-    <div class="sidebar-col">
-      <!-- Formulário de cadastro do negócio (apenas ADMIN) -->
-      <div data-admin-only>
-        <div class="panel">
-          <div class="panel-header" id="form-header">Cadastrar Negócio</div>
-          <div class="panel-body">
-            <input type="hidden" id="f-id">
-            <div class="form-group"><label class="form-label">Nome do negócio *</label><input class="form-input" id="f-nome" placeholder="ex: Padaria São João"></div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Tipo do negócio *</label><input class="form-input" id="f-tipo" placeholder="ex: Padaria, Barbearia, Loja"></div>
-              <div class="form-group"><label class="form-label">Faturamento hoje (R$)</label><input class="form-input" id="f-fat" type="number" step="0.01" min="0" placeholder="0,00"></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Clientes novos hoje</label><input class="form-input" id="f-cli" type="number" min="0" placeholder="0"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Gostos e preferências dos clientes</label>
-              <input class="form-input" id="f-gostos" placeholder="ex: café especial, produtos naturais, promoções relâmpago">
-            </div>
-            <div class="gap-8" style="margin-top:16px;">
-              <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">Salvar Negócio</button>
-              <button class="btn btn-ghost" onclick="limpar()">Novo</button>
+
+    <!-- ── RESUMO DO DIA (sempre visível, topo) ───────────────────────────── -->
+    <div class="panel" style="margin-bottom:24px;">
+      <div class="panel-header">📊 Resumo do Dia</div>
+      <div class="panel-body">
+        <div class="three-col" style="gap:12px;">
+          <div><div class="stat-label">Entradas</div><div class="stat-value green" style="font-size:20px;" id="s-e">—</div></div>
+          <div><div class="stat-label">Saídas</div><div class="stat-value red" style="font-size:20px;" id="s-s">—</div></div>
+          <div><div class="stat-label">Saldo</div><div class="stat-value" style="font-size:20px;" id="s-sal">—</div></div>
+        </div>
+        <hr class="divider">
+        <div class="three-col" style="gap:12px;">
+          <div><div class="stat-label">Vendas hoje</div><div class="stat-value" style="font-size:20px;" id="s-vend">—</div></div>
+          <div><div class="stat-label">Alertas estoque</div><div class="stat-value yellow" style="font-size:20px;" id="s-alerta">—</div></div>
+          <div><div class="stat-label">Clientes</div><div class="stat-value" style="font-size:20px;" id="s-cli">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GRID PRINCIPAL ─────────────────────────────────────────────────── -->
+    <div id="main-grid" class="sidebar-col">
+
+      <!-- Coluna esquerda: formulário (admin) + lista (todos) -->
+      <div>
+        <!-- Formulário de cadastro (apenas ADMIN) -->
+        <div data-admin-only>
+          <div class="panel">
+            <div class="panel-header" id="form-header">Cadastrar Negócio</div>
+            <div class="panel-body">
+              <input type="hidden" id="f-id">
+              <div class="form-group"><label class="form-label">Nome do negócio *</label><input class="form-input" id="f-nome" placeholder="ex: Padaria São João"></div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Tipo do negócio *</label><input class="form-input" id="f-tipo" placeholder="ex: Padaria, Barbearia, Loja"></div>
+                <div class="form-group"><label class="form-label">Faturamento hoje (R$)</label><input class="form-input" id="f-fat" type="number" step="0.01" min="0" placeholder="0,00"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Clientes novos hoje</label><input class="form-input" id="f-cli" type="number" min="0" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gostos e preferências dos clientes</label>
+                <input class="form-input" id="f-gostos" placeholder="ex: café especial, produtos naturais, promoções relâmpago">
+              </div>
+              <div class="gap-8" style="margin-top:16px;">
+                <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">Salvar Negócio</button>
+                <button class="btn btn-ghost" onclick="limpar()">Novo</button>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Lista de negócios cadastrados -->
+        <!-- Lista de negócios (sempre visível) -->
         <div class="panel">
-          <div class="panel-header">Negócios Cadastrados <button class="btn btn-sm btn-ghost" onclick="carregar()">↻</button></div>
+          <div class="panel-header">Meus Negócios <button class="btn btn-sm btn-ghost" onclick="carregar()">↻</button></div>
           <div class="panel-body no-pad" id="lista-negocios">
             <div class="empty-state">Carregando...</div>
           </div>
         </div>
       </div>
 
-      <!-- IA Insights -->
+      <!-- Coluna direita: Consultoria IA -->
       <div>
-        <!-- Painel de análise da IA -->
         <div class="panel">
           <div class="panel-header">
             🤖 Consultoria IA
@@ -94,43 +117,8 @@
             </div>
           </div>
         </div>
-
-        <!-- Análise financeira do dia (automática) -->
-        <div class="panel">
-          <div class="panel-header">📊 Resumo do Dia</div>
-          <div class="panel-body">
-            <div class="three-col" style="gap:12px;">
-              <div>
-                <div class="stat-label">Entradas</div>
-                <div class="stat-value green" style="font-size:20px;" id="s-e">—</div>
-              </div>
-              <div>
-                <div class="stat-label">Saídas</div>
-                <div class="stat-value red" style="font-size:20px;" id="s-s">—</div>
-              </div>
-              <div>
-                <div class="stat-label">Saldo</div>
-                <div class="stat-value" style="font-size:20px;" id="s-sal">—</div>
-              </div>
-            </div>
-            <hr class="divider">
-            <div class="three-col" style="gap:12px;">
-              <div>
-                <div class="stat-label">Vendas hoje</div>
-                <div class="stat-value" style="font-size:20px;" id="s-vend">—</div>
-              </div>
-              <div>
-                <div class="stat-label">Alertas estoque</div>
-                <div class="stat-value yellow" style="font-size:20px;" id="s-alerta">—</div>
-              </div>
-              <div>
-                <div class="stat-label">Clientes</div>
-                <div class="stat-value" style="font-size:20px;" id="s-cli">—</div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -267,6 +255,14 @@ async function carregarResumo() {
 }
 
 carregar();
+
+// Ajusta layout para USER: grid vira 1 coluna com IA ocupando tudo
+(function ajustarLayoutPorRole() {
+  if (getRole() !== 'ADMIN') {
+    const grid = document.getElementById('main-grid');
+    if (grid) grid.style.gridTemplateColumns = '1fr';
+  }
+})();
 </script>
 </body>
 </html>

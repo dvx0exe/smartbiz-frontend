@@ -40,6 +40,16 @@
   </div>
 
   <div class="content">
+    <!-- Banner trial (aparece só se sb_trial === 'true') -->
+    <div id="trial-banner" style="display:none;
+      background:rgba(0,200,150,.07);
+      border:1px solid rgba(0,200,150,.2);
+      border-radius:8px;padding:12px 18px;
+      display:flex;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;gap:10px;margin-bottom:20px;font-size:13px;">
+      <span>🗓️ <strong id="trial-msg" style="color:#e2ede6;">Teste gratuito</strong> <span style="color:rgba(226,237,230,.5);">— entre em contato para continuar usando após o período trial</span></span>
+      <a href="https://wa.me/5534996546841?text=Ol%C3%A1%21+Gostei+do+SmartBiz+e+quero+continuar+usando+ap%C3%B3s+o+trial." target="_blank" style="background:#25D366;color:#000;font-weight:600;font-size:12px;padding:6px 14px;border-radius:5px;text-decoration:none;white-space:nowrap;">💬 Contratar agora</a>
+    </div>
     <!-- Stat cards -->
     <div class="stat-grid">
       <div class="stat-card">
@@ -130,6 +140,29 @@
 <div class="toast" id="toast"></div>
 <script src="api.js"></script>
 <script>
+/* Banner de trial */
+(function() {
+  if (localStorage.getItem('sb_trial') === 'true') {
+    const banner = document.getElementById('trial-banner');
+    if (banner) {
+      banner.style.display = 'flex';
+      // Calcula dias restantes a partir do JWT
+      try {
+        const token = localStorage.getItem('sb_token');
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+          const expMs = payload.exp * 1000;
+          const diasRestantes = Math.max(0, Math.ceil((expMs - Date.now()) / 86400000));
+          const msg = document.getElementById('trial-msg');
+          if (msg) msg.textContent = diasRestantes > 0
+            ? `Trial: ${diasRestantes} dia${diasRestantes !== 1 ? 's' : ''} restante${diasRestantes !== 1 ? 's' : ''}`
+            : 'Trial expirado';
+        }
+      } catch(e) {}
+    }
+  }
+})();
+
 /* Relógio */
 setInterval(() => {
   document.getElementById('clock').textContent =

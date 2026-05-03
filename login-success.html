@@ -58,12 +58,20 @@
     if (email)      localStorage.setItem('sb_email',       email);
     if (businessId) localStorage.setItem('sb_business_id', businessId);
 
+    const isTrial = params.get('trial') === 'true' || claims.trial === true;
+    if (isTrial) localStorage.setItem('sb_trial', 'true');
+
     // Redireciona conforme perfil
     if (role === 'ADMIN') {
       window.location.href = 'admin-dashboard.html';
     } else if (role === 'USER' && businessId) {
       sessionStorage.setItem('sb_viewing_business', businessId);
-      window.location.href = 'index.html';
+      // Primeira vez no trial → setup; caso contrário → app
+      if (isTrial && !localStorage.getItem('sb_trial_setup_done')) {
+        window.location.href = 'trial-setup.html';
+      } else {
+        window.location.href = 'index.html';
+      }
     } else {
       localStorage.clear();
       window.location.href = 'login.html?error=unauthorized';

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Configure seu negócio</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --emerald:#00c896; --emerald-dim:rgba(0,200,150,.15);
+    --ink:#080d0b; --surface:#131e16; --surface2:#182b1c;
+    --border:rgba(0,200,150,.13); --border2:rgba(0,200,150,.3);
+    --text:#e2ede6; --text-dim:rgba(226,237,230,.45); --red:#f05252;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:var(--ink);color:var(--text);
+    font-family:'DM Sans',sans-serif;font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;overflow:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(0,200,150,.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,200,150,.025) 1px,transparent 1px);
+    background-size:48px 48px;
+  }
+
+  .wrap{position:relative;z-index:1;width:100%;max-width:460px;padding:20px;}
+
+  /* ── Trial badge ── */
+  .trial-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.25);
+    border-radius:100px;padding:5px 14px;
+    font-family:'DM Mono',monospace;font-size:0.7rem;
+    letter-spacing:.08em;color:var(--emerald);text-transform:uppercase;
+    margin-bottom:20px;
+  }
+  .trial-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;padding:40px 36px;
+  }
+
+  .logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:4px;text-align:center;}
+  .logo span{color:var(--emerald);}
+  .subtitle{text-align:center;color:var(--text-dim);font-size:13px;margin-bottom:32px;line-height:1.5;}
+  .subtitle strong{color:var(--text);}
+
+  /* Progress steps */
+  .steps{display:flex;align-items:center;gap:8px;margin-bottom:32px;justify-content:center;}
+  .step-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s,transform .3s;}
+  .step-dot.active{background:var(--emerald);transform:scale(1.3);}
+  .step-dot.done{background:rgba(0,200,150,.4);}
+  .step-line{flex:1;height:1px;background:var(--border);max-width:40px;}
+
+  label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-family:'DM Mono',monospace;color:var(--text-dim);margin-bottom:8px;margin-top:20px;}
+  label:first-of-type{margin-top:0;}
+
+  input, select{
+    width:100%;background:var(--ink);border:1px solid rgba(0,200,150,.2);
+    border-radius:6px;padding:12px 14px;font-size:14px;color:var(--text);
+    font-family:'DM Sans',sans-serif;outline:none;
+    transition:border-color .2s,box-shadow .2s;
+    -webkit-appearance:none;appearance:none;
+  }
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300c896' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+  input:focus, select:focus{border-color:var(--emerald);box-shadow:0 0 0 3px rgba(0,200,150,.1);}
+  input::placeholder{color:var(--text-dim);}
+
+  .char-count{font-size:11px;color:var(--text-dim);text-align:right;margin-top:4px;font-family:'DM Mono',monospace;}
+
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;background:var(--emerald);color:#000;
+    font-weight:600;font-size:14px;padding:14px;border-radius:6px;
+    border:none;cursor:pointer;margin-top:28px;
+    transition:background .2s,transform .15s,box-shadow .2s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .btn:hover{background:#00dba6;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,200,150,.3);}
+  .btn:active{transform:translateY(0);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .spinner{display:none;width:16px;height:16px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .btn.loading .spinner{display:block;}
+  .btn.loading .btn-text{display:none;}
+
+  .trial-info{
+    margin-top:20px;
+    background:rgba(0,200,150,.05);border:1px solid rgba(0,200,150,.12);
+    border-radius:8px;padding:14px 16px;
+    font-size:12px;color:var(--text-dim);line-height:1.6;
+    display:flex;gap:10px;align-items:flex-start;
+  }
+  .trial-info-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+
+  .err{background:rgba(240,82,82,.1);border:1px solid rgba(240,82,82,.3);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:14px;display:none;}
+  .err.show{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="text-align:center;margin-bottom:20px;">
+    <div class="trial-badge"><span class="dot"></span>Teste gratuito · 7 dias</div>
+  </div>
+
+  <div class="card">
+    <div class="logo">Smart<span>Biz</span></div>
+    <p class="subtitle">Bem-vindo! Conta criada com sucesso.<br><strong>Configure seu negócio para começar.</strong></p>
+
+    <div class="steps">
+      <div class="step-dot active" id="sd1"></div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="sd2"></div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="sd3"></div>
+    </div>
+
+    <label for="nome">Nome do seu negócio</label>
+    <input id="nome" type="text" placeholder="Ex: Padaria do João, Salão Bella, Mercadinho..." maxlength="60" oninput="updateChar()">
+    <div class="char-count"><span id="char-n">0</span>/60</div>
+
+    <label for="tipo">Tipo de negócio</label>
+    <select id="tipo">
+      <option value="">Selecione...</option>
+      <option value="Alimentação">🍽️ Alimentação (restaurante, lanchonete, padaria...)</option>
+      <option value="Varejo">🛒 Varejo (loja, mercadinho, boutique...)</option>
+      <option value="Serviços">🔧 Serviços (salão, oficina, consultório...)</option>
+      <option value="Atacado">📦 Atacado / Distribuição</option>
+      <option value="Tecnologia">💻 Tecnologia / Digital</option>
+      <option value="Saúde">🏥 Saúde e Bem-estar</option>
+      <option value="Educação">📚 Educação</option>
+      <option value="Geral">📋 Outro</option>
+    </select>
+
+    <div class="err" id="err-box"></div>
+
+    <button class="btn" id="btn-salvar" onclick="salvar()" disabled>
+      <span class="spinner"></span>
+      <span class="btn-text">Entrar no SmartBiz →</span>
+    </button>
+
+    <div class="trial-info">
+      <span class="trial-info-icon">🗓️</span>
+      <span>Seu acesso gratuito termina em <strong style="color:var(--text)">7 dias</strong>. Sem cartão necessário. Você pode continuar usando após entrar em contato com nossa equipe.</span>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+const BACKEND = 'https://smartbiz-api.fly.dev';
+const token      = localStorage.getItem('sb_token');
+const businessId = localStorage.getItem('sb_business_id');
+
+// Guard: se não tem token, manda pro login
+if (!token || !businessId) {
+  window.location.href = 'login.html';
+}
+
+function updateChar() {
+  const v = document.getElementById('nome').value.trim();
+  document.getElementById('char-n').textContent = v.length;
+  validateForm();
+}
+function validateForm() {
+  const nome = document.getElementById('nome').value.trim();
+  const tipo = document.getElementById('tipo').value;
+  document.getElementById('btn-salvar').disabled = !(nome.length >= 2 && tipo);
+  // animate steps
+  document.getElementById('sd1').className = 'step-dot ' + (nome.length >= 2 ? 'done' : 'active');
+  document.getElementById('sd2').className = 'step-dot ' + (nome.length >= 2 && tipo ? 'done' : nome.length >= 2 ? 'active' : '');
+  document.getElementById('sd3').className = 'step-dot ' + (nome.length >= 2 && tipo ? 'active' : '');
+}
+document.getElementById('tipo').addEventListener('change', validateForm);
+
+async function salvar() {
+  const nome = document.getElementById('nome').value.trim();
+  const tipo = document.getElementById('tipo').value;
+  const btn  = document.getElementById('btn-salvar');
+  const err  = document.getElementById('err-box');
+  err.classList.remove('show');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${BACKEND}/api/negocios/${businessId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ nome, tipo, emailVinculado: localStorage.getItem('sb_email') })
+    });
+
+    if (!res.ok) throw new Error('Erro ao salvar. Tente novamente.');
+
+    localStorage.setItem('sb_trial_setup_done', 'true');
+    sessionStorage.setItem('sb_viewing_business', businessId);
+    window.location.href = 'index.html';
+  } catch(e) {
+    err.textContent = e.message;
+    err.classList.add('show');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

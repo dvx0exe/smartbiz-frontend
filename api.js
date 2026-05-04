@@ -25,25 +25,17 @@ window._decodeJWT = function(token) {
   } catch { return {}; }
 };
 
-window.getToken     = () => localStorage.getItem('sb_token') || '';
+window.getToken      = () => localStorage.getItem('sb_token') || '';
 
-/** Role extraída do JWT assinado — não pode ser alterada pelo usuário via localStorage. */
-window.getRole      = () => {
-  const token = localStorage.getItem('sb_token');
-  if (!token) return '';
-  return window._decodeJWT(token).role || '';
-};
-
-/** Email extraído do subject do JWT assinado. */
-window.getUserEmail = () => {
-  const token = localStorage.getItem('sb_token');
-  if (!token) return localStorage.getItem('sb_email') || '';
-  return window._decodeJWT(token).sub || localStorage.getItem('sb_email') || '';
-};
+/** Todas as claims vêm do JWT assinado — nunca do localStorage. */
+window._claims       = () => window._decodeJWT(localStorage.getItem('sb_token') || '');
+window.getRole       = () => window._claims().role       || '';
+window.getUserEmail  = () => window._claims().sub        || '';
+window.isTrial       = () => window._claims().trial      === true;
 
 window.getBusinessId = () =>
   sessionStorage.getItem('sb_viewing_business') ||
-  localStorage.getItem('sb_business_id')        || '';
+  window._claims().businessId                   || '';
 
 window.getViewingBusinessNome = () =>
   sessionStorage.getItem('sb_viewing_business_nome') || '';
@@ -55,7 +47,8 @@ window.setViewingBusiness = (id, nome, emailVinculado) => {
 };
 
 window.logout = () => {
-  localStorage.clear();
+  localStorage.removeItem('sb_token');
+  localStorage.removeItem('sb_trial_setup_done');
   sessionStorage.clear();
   window.location.href = 'login.html';
 };

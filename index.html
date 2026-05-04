@@ -142,21 +142,19 @@
 <script>
 /* Banner de trial */
 (function() {
-  if (localStorage.getItem('sb_trial') === 'true') {
+  if (window.isTrial()) {
     const banner = document.getElementById('trial-banner');
     if (banner) {
       banner.style.display = 'flex';
       // Calcula dias restantes a partir do JWT
       try {
-        const token = localStorage.getItem('sb_token');
-        if (token) {
-          const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-          const expMs = payload.exp * 1000;
-          const diasRestantes = Math.max(0, Math.ceil((expMs - Date.now()) / 86400000));
-          const msg = document.getElementById('trial-msg');
-          if (msg) msg.textContent = diasRestantes > 0
-            ? `Trial: ${diasRestantes} dia${diasRestantes !== 1 ? 's' : ''} restante${diasRestantes !== 1 ? 's' : ''}`
-            : 'Trial expirado';
+        const claims = window._claims();
+        const expMs = claims.exp * 1000;
+        const diasRestantes = Math.max(0, Math.ceil((expMs - Date.now()) / 86400000));
+        const msg = document.getElementById('trial-msg');
+        if (msg) msg.textContent = diasRestantes > 0
+          ? `Trial: ${diasRestantes} dia${diasRestantes !== 1 ? 's' : ''} restante${diasRestantes !== 1 ? 's' : ''}`
+          : 'Trial expirado';
         }
       } catch(e) {}
     }

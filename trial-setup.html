@@ -156,9 +156,10 @@
 
 <script src="api.js"></script>
 <script>
-const BACKEND = 'https://smartbiz-api.fly.dev';
+const BACKEND    = 'https://smartbiz-api.fly.dev';
 const token      = localStorage.getItem('sb_token');
-const businessId = localStorage.getItem('sb_business_id');
+const businessId = window._claims().businessId || '';
+const userEmail  = window.getUserEmail();
 
 // Guard: se não tem token, manda pro login
 if (!token || !businessId) {
@@ -197,7 +198,7 @@ async function salvar() {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token
       },
-      body: JSON.stringify({ nome, tipo, emailVinculado: localStorage.getItem('sb_email') })
+      body: JSON.stringify({ nome, tipo, emailVinculado: userEmail })
     });
 
     if (!res.ok) throw new Error('Erro ao salvar. Tente novamente.');

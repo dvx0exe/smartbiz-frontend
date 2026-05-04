@@ -13,9 +13,33 @@ window.API = {
   authGoogle:  `${BASE_AUTH}/oauth2/authorization/google`
 };
 
-window.getToken      = () => localStorage.getItem('sb_token')    || '';
-window.getRole       = () => localStorage.getItem('sb_role')     || '';
-window.getUserEmail  = () => localStorage.getItem('sb_email')    || '';
+/**
+ * Decodifica o payload do JWT sem verificar a assinatura (verificação ocorre no backend).
+ * Impede que editar o localStorage conceda acesso indevido, pois a role
+ * sempre vem do token assinado pelo servidor.
+ */
+window._decodeJWT = function(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+  } catch { return {}; }
+};
+
+window.getToken     = () => localStorage.getItem('sb_token') || '';
+
+/** Role extraída do JWT assinado — não pode ser alterada pelo usuário via localStorage. */
+window.getRole      = () => {
+  const token = localStorage.getItem('sb_token');
+  if (!token) return '';
+  return window._decodeJWT(token).role || '';
+};
+
+/** Email extraído do subject do JWT assinado. */
+window.getUserEmail = () => {
+  const token = localStorage.getItem('sb_token');
+  if (!token) return localStorage.getItem('sb_email') || '';
+  return window._decodeJWT(token).sub || localStorage.getItem('sb_email') || '';
+};
 
 window.getBusinessId = () =>
   sessionStorage.getItem('sb_viewing_business') ||
@@ -43,7 +67,7 @@ window.logout = () => {
   const token = localStorage.getItem('sb_token');
   if (!token) { window.location.href = 'login.html'; return; }
 
-  const role = localStorage.getItem('sb_role') || '';
+  const role = window.getRole();
   const adminPages = ['admin-dashboard.html', 'admin-cadastro.html'];
 
   if (adminPages.includes(page) && role === 'ADMIN') {
@@ -58,7 +82,7 @@ window.logout = () => {
 })();
 
 function _injectViewingUser(url) {
-  if ((localStorage.getItem('sb_role') || '') !== 'ADMIN') return url;
+  if (window.getRole() !== 'ADMIN') return url;
   const page = window.location.pathname.split('/').pop() || '';
   if (page === 'admin-dashboard.html' || page === 'admin-cadastro.html') return url;
   const viewingEmail = sessionStorage.getItem('sb_viewing_user_email') || '';
@@ -154,8 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnMenu) btnMenu.addEventListener('click', openSidebar);
   }
 
-  const role  = localStorage.getItem('sb_role') || '';
-  const email = localStorage.getItem('sb_email') || '';
+  const role  = window.getRole();
+  const email = window.getUserEmail();
   const nome  = window.getViewingBusinessNome();
 
   document.querySelectorAll('[data-admin-only]').forEach(el => {

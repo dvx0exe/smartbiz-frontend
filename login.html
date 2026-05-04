@@ -106,8 +106,10 @@
     }
 
     var token = localStorage.getItem('sb_token');
-    var role  = localStorage.getItem('sb_role');
     if (token) {
+      var role = (function() {
+        try { return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).role || ''; } catch { return ''; }
+      })();
       window.location.href = role === 'ADMIN' ? 'admin-dashboard.html' : 'index.html';
     }
   </script>

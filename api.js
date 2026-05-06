@@ -4,13 +4,14 @@ var BASE_AUTH = BACKEND_URL;
 var BASE_API  = BACKEND_URL + '/api';
 
 window.API = {
-  negocios:    `${BASE_API}/negocios`,
-  clientes:    `${BASE_API}/clientes`,
-  produtos:    `${BASE_API}/produtos`,
-  lancamentos: `${BASE_API}/lancamentos`,
-  vendas:      `${BASE_API}/vendas`,
-  nfe:         `${BASE_API}/nfe`,
-  authGoogle:  `${BASE_AUTH}/oauth2/authorization/google`
+  negocios:       `${BASE_API}/negocios`,
+  clientes:       `${BASE_API}/clientes`,
+  produtos:       `${BASE_API}/produtos`,
+  lancamentos:    `${BASE_API}/lancamentos`,
+  vendas:         `${BASE_API}/vendas`,
+  nfe:            `${BASE_API}/nfe`,
+  dashboardStats: `${BASE_API}/dashboard/stats`,
+  authGoogle:     `${BASE_AUTH}/oauth2/authorization/google`
 };
 
 /**
@@ -94,6 +95,14 @@ async function api(url, opts = {}) {
   if (res.status === 401 && !window.location.pathname.includes('login.html')) {
     localStorage.removeItem('sb_token');
     window.location.href = 'login.html';
+    return;
+  }
+  // 402 = trial expirado — redireciona para página de upgrade
+  if (res.status === 402) {
+    const page = window.location.pathname.split('/').pop();
+    if (page !== 'trial-expirado.html') {
+      window.location.href = 'trial-expirado.html';
+    }
     return;
   }
   if (!res.ok) throw new Error(await res.text().catch(() => 'Erro desconhecido'));

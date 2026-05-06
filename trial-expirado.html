@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartBiz · Trial Expirado</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --emerald:#00c896; --ink:#080d0b; --surface:#131e16; --surface2:#0f1a12;
+    --border:rgba(0,200,150,.13); --text:#e2ede6; --text-dim:rgba(226,237,230,.45);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{height:100%}
+  body{
+    min-height:100%;background:var(--ink);color:var(--text);
+    font-family:'DM Sans',sans-serif;font-size:14px;
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;padding:24px 16px;position:relative;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(rgba(0,200,150,.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,200,150,.025) 1px,transparent 1px);
+    background-size:48px 48px;
+  }
+  body::after{
+    content:'';position:fixed;width:600px;height:600px;border-radius:50%;
+    background:radial-gradient(circle,rgba(0,200,150,.06) 0%,transparent 70%);
+    top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;
+  }
+  .card{
+    position:relative;z-index:1;width:100%;max-width:560px;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:52px 48px 44px;text-align:center;
+    box-shadow:0 32px 96px rgba(0,0,0,.6),0 0 0 1px rgba(0,200,150,.06);
+  }
+  .logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-1px;margin-bottom:32px;opacity:.7;}
+  .logo span{color:var(--emerald);}
+  .icon{font-size:56px;display:block;margin-bottom:14px;line-height:1;}
+  h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:10px;}
+  .subtitle{color:var(--text-dim);line-height:1.65;max-width:360px;margin:0 auto 4px;}
+  .badge-trial{
+    display:inline-flex;align-items:center;gap:6px;margin:20px 0 28px;
+    background:rgba(240,82,82,.1);border:1px solid rgba(240,82,82,.28);
+    color:#f87171;padding:7px 18px;border-radius:4px;
+    font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;
+  }
+  .badge-trial::before{content:'●';font-size:8px;animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .plans-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:14px;}
+  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+  .plan{
+    background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+    padding:22px 10px 18px;text-align:center;cursor:pointer;
+    transition:all .15s;position:relative;
+  }
+  .plan:hover{border-color:rgba(0,200,150,.4);background:rgba(0,200,150,.04);transform:translateY(-2px);}
+  .plan.popular{border-color:var(--emerald);background:rgba(0,200,150,.05);}
+  .plan.popular::before{
+    content:'POPULAR';position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+    background:var(--emerald);color:#000;font-family:'DM Mono',monospace;
+    font-size:8px;letter-spacing:1.2px;padding:3px 10px;border-radius:3px;font-weight:700;white-space:nowrap;
+  }
+  .plan-nome{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.8px;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px;}
+  .plan-preco{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--emerald);line-height:1;}
+  .plan-preco small{font-size:11px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-weight:400;}
+  .plan-features{font-size:11px;color:var(--text-dim);margin-top:12px;line-height:1.8;list-style:none;}
+  .plan-features li::before{content:'·  ';color:var(--emerald);}
+  .btn-upgrade{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:6px;
+    background:var(--emerald);color:#000;font-family:'DM Mono',monospace;font-size:12px;
+    letter-spacing:1.5px;font-weight:700;text-transform:uppercase;border:none;cursor:pointer;
+    text-decoration:none;transition:opacity .15s,transform .1s;
+  }
+  .btn-upgrade:hover{opacity:.88;transform:translateY(-1px);}
+  .footer{margin-top:22px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .footer-link{font-size:12px;color:var(--text-dim);}
+  .footer-link a{color:var(--emerald);text-decoration:none;}
+  .footer-link a:hover{text-decoration:underline;}
+  .btn-sair{
+    background:transparent;border:1px solid var(--border);border-radius:4px;
+    color:var(--text-dim);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;
+    letter-spacing:1px;padding:7px 16px;transition:border-color .15s,color .15s;white-space:nowrap;
+  }
+  .btn-sair:hover{border-color:rgba(240,82,82,.4);color:#f87171;}
+  @media(max-width:520px){
+    .card{padding:40px 24px 36px;}
+    .plans{grid-template-columns:1fr;gap:8px;}
+    .footer{flex-direction:column;gap:12px;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">Smart<span>Biz</span></div>
+
+  <span class="icon">⏳</span>
+  <h1>Seu trial expirou</h1>
+  <p class="subtitle">O período de teste gratuito de 7 dias chegou ao fim.<br>Assine um plano para continuar sem interrupção.</p>
+
+  <div class="badge-trial">Trial encerrado</div>
+
+  <p class="plans-label">Escolha seu plano</p>
+
+  <div class="plans">
+    <div class="plan" onclick="window.open('https://smartbiz.net.br/#planos','_blank')">
+      <div class="plan-nome">Básico</div>
+      <div class="plan-preco">R$49<small>/mês</small></div>
+      <ul class="plan-features">
+        <li>1 usuário</li><li>PDV + Estoque</li><li>Fluxo de Caixa</li>
+      </ul>
+    </div>
+    <div class="plan popular" onclick="window.open('https://smartbiz.net.br/#planos','_blank')">
+      <div class="plan-nome">Profissional</div>
+      <div class="plan-preco">R$97<small>/mês</small></div>
+      <ul class="plan-features">
+        <li>3 usuários</li><li>IA Insights</li><li>Clientes &amp; NF-e</li>
+      </ul>
+    </div>
+    <div class="plan" onclick="window.open('https://smartbiz.net.br/#planos','_blank')">
+      <div class="plan-nome">Empresarial</div>
+      <div class="plan-preco">R$197<small>/mês</small></div>
+      <ul class="plan-features">
+        <li>Ilimitado</li><li>Relatórios</li><li>Suporte Prioritário</li>
+      </ul>
+    </div>
+  </div>
+
+  <a class="btn-upgrade" href="https://smartbiz.net.br/#planos" target="_blank">
+    🚀 &nbsp;Ver Planos e Assinar
+  </a>
+
+  <div class="footer">
+    <span class="footer-link">Dúvidas? Fale pelo
+      <a href="https://wa.me/5534999999999?text=Quero%20assinar%20o%20SmartBiz" target="_blank">WhatsApp</a>
+    </span>
+    <button class="btn-sair"
+      onclick="localStorage.removeItem('sb_token');localStorage.removeItem('sb_trial_setup_done');sessionStorage.clear();window.location.href='login.html'">
+      ← Sair da conta
+    </button>
+  </div>
+</div>
+
+</body>
+</html>

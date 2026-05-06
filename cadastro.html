@@ -236,9 +236,9 @@ async function remover(id, nome) {
 
 async function carregarResumo() {
   try {
-    const [resumo, vendas, alertas, clientes] = await Promise.all([
+    const [resumo, stats, alertas, clientes] = await Promise.all([
       get(`${API.lancamentos}/resumo/hoje`),
-      get(API.vendas),
+      get(API.dashboardStats),
       get(`${API.produtos}/alerta`),
       get(API.clientes),
     ]);
@@ -247,11 +247,18 @@ async function carregarResumo() {
     document.getElementById('s-s').textContent   = brl(resumo.saidas||0);
     document.getElementById('s-sal').textContent = brl(saldo);
     document.getElementById('s-sal').className   = 'stat-value ' + (saldo>=0?'green':'red');
-    const vH = (vendas||[]).filter(v=>new Date(v.dataVenda).toDateString()===new Date().toDateString()).length;
-    document.getElementById('s-vend').textContent   = vH + ' vendas';
+    // Métricas reais de vendas (calculadas no backend)
+    document.getElementById('s-vend').textContent   = (stats.vendasHoje||0) + ' vendas';
     document.getElementById('s-alerta').textContent = alertas.length;
     document.getElementById('s-cli').textContent    = (clientes||[]).length;
-  } catch {}
+  } catch {
+    // Fallback: ainda mostra o que tiver
+    try {
+      const resumo = await get(`${API.lancamentos}/resumo/hoje`);
+      document.getElementById('s-e').textContent = brl(resumo.entradas||0);
+      document.getElementById('s-s').textContent = brl(resumo.saidas||0);
+    } catch {}
+  }
 }
 
 carregar();

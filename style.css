@@ -174,7 +174,10 @@ body::before {
 .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
 .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:20px; }
 .stat-label { font-family:'DM Mono', monospace; font-size:9px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px; }
-.stat-value { font-family:'Syne', sans-serif; font-size:28px; font-weight:800; color:#fff; line-height:1; }
+.stat-value { font-family:'Syne', sans-serif; font-size:28px; font-weight:800; color:#fff; line-height:1;
+  font-feature-settings:'tnum' 1; /* números tabulares — evita o efeito "esticado" */
+  font-variant-numeric: tabular-nums;
+}
 .stat-value.green  { color:var(--emerald); }
 .stat-value.red    { color:var(--red); }
 .stat-value.yellow { color:var(--yellow); }
@@ -377,3 +380,37 @@ tbody tr:last-child td { border-bottom:none; }
 /* Produto inativo — linha esmaecida na tabela de estoque */
 .row-inativo { opacity: 0.45; }
 .row-inativo:hover { opacity: 0.75; }
+
+
+/* ── PAGE TABS (Dashboard / Negócio & IA) ──────────────────────────────── */
+.page-tabs {
+  display:flex; gap:4px; margin-bottom:24px;
+  border-bottom:1px solid var(--border); padding-bottom:0;
+}
+.page-tab {
+  background:none; border:none; border-bottom:2px solid transparent;
+  color:var(--text-dim); font-family:'DM Mono',monospace; font-size:10px;
+  letter-spacing:1.5px; text-transform:uppercase; padding:8px 20px;
+  cursor:pointer; transition:all .15s; margin-bottom:-1px;
+}
+.page-tab.active { color:var(--emerald); border-bottom-color:var(--emerald); }
+.page-tab:hover:not(.active) { color:var(--text); }
+
+/* ── ONBOARDING HINT ─────────────────────────────────────────────────────── */
+.onboarding-hint {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+  background:var(--surface); border:1px solid var(--emerald);
+  border-radius:8px; padding:18px 22px; z-index:999;
+  display:flex; align-items:flex-start; gap:14px; max-width:420px;
+  box-shadow:0 16px 48px rgba(0,0,0,.5);
+  animation:slideUp .4s ease;
+}
+@keyframes slideUp { from{transform:translateX(-50%) translateY(20px);opacity:0} to{transform:translateX(-50%) translateY(0);opacity:1} }
+.onboarding-icon { font-size:28px; line-height:1; flex-shrink:0; }
+.onboarding-body strong { display:block; font-family:'Syne',sans-serif; font-size:14px; margin-bottom:6px; }
+.onboarding-body p { font-size:12px; color:var(--text-dim); line-height:1.6; margin-bottom:12px; }
+.onboarding-body button {
+  background:var(--emerald); color:#000; border:none; border-radius:3px;
+  font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1.5px;
+  padding:7px 16px; cursor:pointer; font-weight:700;
+}

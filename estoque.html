@@ -192,27 +192,31 @@ function renderTabela(lista) {
     else if (p.quantidade === 0) { badge='badge-red'; statusTxt='Zerado'; }
     else if (p.quantidade < p.quantidadeMinima){ badge='badge-yellow'; statusTxt='Alerta'; }
 
-    return `<tr>
-      <td class="text-mono text-dim">${p.codigo||'—'}</td>
-      <td><strong>${p.nome}</strong></td>
-      <td>${p.categoria||'—'}</td>
-      <td>
-        <div class="qty-ctrl">
+    const qtyCtrl = p.ativo
+      ? `<div class="qty-ctrl">
           <button class="qty-btn" onclick="openMov('${p.id}','${p.nome}',-1)">−</button>
           <span class="qty-num">${p.quantidade}</span>
           <button class="qty-btn" onclick="openMov('${p.id}','${p.nome}',1)">+</button>
-        </div>
-      </td>
+        </div>`
+      : `<span class="text-dim text-mono" style="font-size:11px;">${p.quantidade}</span>`;
+
+    const acoes = p.ativo
+      ? `<button class="btn btn-sm btn-ghost" onclick="editarProduto('${p.id}')">✏️</button>
+         <button class="btn btn-sm btn-danger" onclick="inativar('${p.id}','${p.nome}')" title="Inativar produto">🚫</button>`
+      : `<button class="btn btn-sm btn-ghost" onclick="reativar('${p.id}','${p.nome}')" title="Reativar produto" style="color:var(--emerald);border-color:var(--emerald);">↩ Reativar</button>`;
+
+    return `<tr class="${p.ativo ? '' : 'row-inativo'}">
+      <td class="text-mono text-dim">${p.codigo||'—'}</td>
+      <td><strong>${p.nome}</strong></td>
+      <td>${p.categoria||'—'}</td>
+      <td>${qtyCtrl}</td>
       <td class="text-dim">${p.quantidadeMinima}</td>
       <td class="text-mono">${brl(p.precoCusto)}</td>
       <td class="text-mono text-green">${brl(p.precoVenda)}</td>
       <td class="text-mono">${margem !== '—' ? margem+'%' : '—'}</td>
       <td><span class="badge ${badge}">${statusTxt}</span></td>
       <td>
-        <div class="gap-8">
-          <button class="btn btn-sm btn-ghost" onclick="editarProduto('${p.id}')">✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="remover('${p.id}','${p.nome}')">✕</button>
-        </div>
+        <div class="gap-8">${acoes}</div>
       </td>
     </tr>`;
   }).join('');
@@ -273,10 +277,21 @@ async function confirmarMov() {
   } catch(e) { toast('Erro: ' + e.message, 'err'); }
 }
 
-async function remover(id, nome) {
-  if (!confirm(`Remover "${nome}"?`)) return;
-  try { await del(`${API.produtos}/${id}`); carregarProdutos(); }
-  catch(e) { toast('Erro: ' + e.message, 'err'); }
+async function inativar(id, nome) {
+  if (!confirm(`Inativar "${nome}"?\n\nO produto ficará oculto no PDV e estoque, mas o histórico de vendas é preservado.\nVocê pode reativá-lo depois.`)) return;
+  try {
+    await del(`${API.produtos}/${id}`);
+    toast(`✓ "${nome}" inativado.`);
+    carregarProdutos();
+  } catch(e) { toast('Erro: ' + e.message, 'err'); }
+}
+
+async function reativar(id, nome) {
+  try {
+    await patch(`${API.produtos}/${id}/reativar`);
+    toast(`✓ "${nome}" reativado.`);
+    carregarProdutos();
+  } catch(e) { toast('Erro ao reativar: ' + e.message, 'err'); }
 }
 
 async function analisarIA() {

@@ -373,3 +373,7 @@ tbody tr:last-child td { border-bottom:none; }
   .stat-grid { grid-template-columns:1fr 1fr; }
   .stat-value { font-size:17px; }
 }
+
+/* Produto inativo — linha esmaecida na tabela de estoque */
+.row-inativo { opacity: 0.45; }
+.row-inativo:hover { opacity: 0.75; }

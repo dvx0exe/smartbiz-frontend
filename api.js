@@ -1,6 +1,13 @@
-// Garante HTTPS mesmo que valor salvo no localStorage seja http:// (ex: testes antigos)
+// ── Fix Mixed Content: garante HTTPS em todas as circunstâncias ─────────────
+// Lê o valor salvo (pode ser http:// de testes antigos)
 var _rawBackend = localStorage.getItem('sb_backend_url') || 'https://smartbiz-api.fly.dev';
+// Corrige http:// → https://
 var BACKEND_URL = _rawBackend.replace(/^http:\/\//i, 'https://');
+// Salva o valor CORRIGIDO de volta — elimina o problema permanentemente
+if (_rawBackend !== BACKEND_URL) {
+  localStorage.setItem('sb_backend_url', BACKEND_URL);
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 var BASE_AUTH = BACKEND_URL;
 var BASE_API  = BACKEND_URL + '/api';

@@ -1,4 +1,6 @@
-var BACKEND_URL = localStorage.getItem('sb_backend_url') || 'https://smartbiz-api.fly.dev';
+// Garante HTTPS mesmo que valor salvo no localStorage seja http:// (ex: testes antigos)
+var _rawBackend = localStorage.getItem('sb_backend_url') || 'https://smartbiz-api.fly.dev';
+var BACKEND_URL = _rawBackend.replace(/^http:\/\//i, 'https://');
 
 var BASE_AUTH = BACKEND_URL;
 var BASE_API  = BACKEND_URL + '/api';

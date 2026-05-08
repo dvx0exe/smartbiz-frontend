@@ -15,8 +15,8 @@
   <a class="nav-item" data-admin-only href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
   <a class="nav-item" data-admin-only href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
   <div class="nav-group-label">Principal</div>
-  <a class="nav-item" href="cadastro.html"><span class="nav-icon">📊</span>Dashboard</a>
-  <a class="nav-item active" href="cadastro.html"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
+  <a class="nav-item" id="nav-dashboard" href="cadastro.html#dashboard"><span class="nav-icon">📊</span>Dashboard</a>
+  <a class="nav-item" id="nav-negocio" href="cadastro.html#negocio"><span class="nav-icon">🏪</span>Negócio &amp; IA</a>
   <div class="nav-group-label">Operacional</div>
   <a class="nav-item" href="estoque.html"><span class="nav-icon">📦</span>Estoque</a>
   <a class="nav-item" href="pdv.html"><span class="nav-icon">🛒</span>PDV</a>
@@ -38,6 +38,15 @@
 
   <div class="content">
 
+    <!-- ── TABS DE NAVEGAÇÃO ──────────────────────────────────────────────── -->
+    <div class="page-tabs" id="page-tabs">
+      <button class="page-tab active" data-tab="dashboard">📊 Dashboard</button>
+      <button class="page-tab" data-tab="negocio">🏪 Negócio &amp; IA</button>
+    </div>
+
+    <!-- ── SEÇÃO DASHBOARD ───────────────────────────────────────────────── -->
+    <div id="tab-dashboard">
+
     <!-- ── RESUMO DO DIA (sempre visível, topo) ───────────────────────────── -->
     <div class="panel" style="margin-bottom:24px;">
       <div class="panel-header">📊 Resumo do Dia</div>
@@ -55,6 +64,11 @@
         </div>
       </div>
     </div>
+
+    </div><!-- /#tab-dashboard -->
+
+    <!-- ── SEÇÃO NEGÓCIO & IA ─────────────────────────────────────────────── -->
+    <div id="tab-negocio" style="display:none">
 
     <!-- ── GRID PRINCIPAL ─────────────────────────────────────────────────── -->
     <div id="main-grid" class="sidebar-col">
@@ -120,6 +134,7 @@
       </div>
 
     </div>
+    </div><!-- /#tab-negocio -->
   </div>
 </div>
 
@@ -127,6 +142,43 @@
 <script src="api.js"></script>
 <script>
 let negocios = [], negocioSel = null;
+
+/* ── TAB SWITCHER (Dashboard ↔ Negócio & IA) ──────────────────────────── */
+function switchTab(tabName) {
+  document.getElementById('tab-dashboard').style.display = tabName === 'dashboard' ? '' : 'none';
+  document.getElementById('tab-negocio').style.display   = tabName === 'negocio'   ? '' : 'none';
+  document.querySelectorAll('.page-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+  // Atualiza nav sidebar
+  document.getElementById('nav-dashboard')?.classList.toggle('active', tabName === 'dashboard');
+  document.getElementById('nav-negocio')?.classList.toggle('active', tabName === 'negocio');
+  history.replaceState(null, '', '#' + tabName);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Hash routing: cadastro.html#dashboard ou #negocio
+  const hash = window.location.hash.replace('#', '') || 'dashboard';
+  switchTab(hash === 'negocio' ? 'negocio' : 'dashboard');
+
+  document.querySelectorAll('.page-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // Onboarding: mostra hint apenas na primeira visita
+  if (!localStorage.getItem('sb_onboarding_done')) {
+    setTimeout(() => {
+      const hint = document.createElement('div');
+      hint.className = 'onboarding-hint';
+      hint.innerHTML = `
+        <div class="onboarding-icon">👋</div>
+        <div class="onboarding-body">
+          <strong>Bem-vindo ao SmartBiz!</strong>
+          <p>Comece cadastrando seu negócio na aba <b>Negócio & IA</b>, depois explore o PDV e o Estoque.</p>
+          <button onclick="this.closest('.onboarding-hint').remove(); localStorage.setItem('sb_onboarding_done','1')">Entendido →</button>
+        </div>`;
+      document.body.appendChild(hint);
+    }, 800);
+  }
+});
 
 async function carregar() {
   try {

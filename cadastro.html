@@ -159,6 +159,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const hash = window.location.hash.replace('#', '') || 'dashboard';
   switchTab(hash === 'negocio' ? 'negocio' : 'dashboard');
 
+  // Garante que mudança de hash na mesma página também troca a aba
+  window.addEventListener('hashchange', () => {
+    const h = window.location.hash.replace('#', '') || 'dashboard';
+    switchTab(h === 'negocio' ? 'negocio' : 'dashboard');
+  });
+
   document.querySelectorAll('.page-tab').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });

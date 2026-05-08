@@ -174,9 +174,10 @@ body::before {
 .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
 .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:20px; }
 .stat-label { font-family:'DM Mono', monospace; font-size:9px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px; }
-.stat-value { font-family:'Syne', sans-serif; font-size:28px; font-weight:800; color:#fff; line-height:1;
-  font-feature-settings:'tnum' 1; /* números tabulares — evita o efeito "esticado" */
+.stat-value { font-family:'DM Mono', monospace; font-size:26px; font-weight:500; color:#fff; line-height:1;
+  font-feature-settings:'tnum' 1;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
 }
 .stat-value.green  { color:var(--emerald); }
 .stat-value.red    { color:var(--red); }

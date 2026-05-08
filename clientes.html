@@ -131,7 +131,8 @@ document.addEventListener('DOMContentLoaded', () => maskCpf(document.getElementB
 
 async function carregar() {
   try {
-    clientes = await get(API.clientes);
+    const res = await get(API.clientes);
+    clientes = Array.isArray(res) ? res : [];
     const vip    = clientes.filter(c=>c.segmento==='VIP').length;
     const ticket = clientes.length ? clientes.reduce((s,c)=>s+c.totalGasto,0)/clientes.length : 0;
     const npsCli = clientes.filter(c=>c.nps!=null);

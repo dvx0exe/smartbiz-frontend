@@ -143,7 +143,8 @@ async function carregarPeriodo() {
     url = `${API.lancamentos}/periodo?inicio=${ini.toISOString().split('T')[0]}&fim=${fim.toISOString().split('T')[0]}`;
   }
   try {
-    const lista = await get(url);
+    const res = await get(url);
+    const lista = Array.isArray(res) ? res : [];
     document.getElementById('s-qt').textContent = lista.length;
     renderExtrato(lista);
     renderCategorias(lista);

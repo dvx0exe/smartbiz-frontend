@@ -497,7 +497,8 @@ async function processar() {
 
 async function carregarHistorico() {
   try {
-    const lista=(await get(`${API.lancamentos}/hoje`)).filter(l=>l.tipo==='ENTRADA').reverse().slice(0,15);
+    const res = await get(`${API.lancamentos}/hoje`);
+    const lista=(Array.isArray(res) ? res : []).filter(l=>l.tipo==='ENTRADA').reverse().slice(0,15);
     const el=document.getElementById('hist-pagamentos');
     if(!lista.length){el.innerHTML='<div class="empty-state">Nenhum recebimento hoje.</div>';return;}
     el.innerHTML=lista.map(l=>`

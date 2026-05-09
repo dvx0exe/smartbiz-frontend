@@ -153,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => maskCpf(document.getElementB
 
 async function carregarProdutos() {
   try {
-    produtos = await get(`${API.produtos}?apenasAtivos=true`);
+    const res = await get(`${API.produtos}?apenasAtivos=true`);
+    produtos = Array.isArray(res) ? res : [];
     const cats = [...new Set(produtos.map(p=>p.categoria).filter(Boolean))];
     document.getElementById('cats').innerHTML =
       `<button class="btn btn-sm ${catSel===''?'btn-primary':'btn-ghost'}" onclick="setcat('')">Todos</button>` +
@@ -307,7 +308,8 @@ async function cancelarVenda(id) {
 
 async function carregarVendas() {
   try {
-    const vendas = (await get(API.vendas)).slice(0,20);
+    const res = await get(API.vendas);
+    const vendas = (Array.isArray(res) ? res : []).slice(0,20);
     const body = document.getElementById('vendas-body');
     if (!vendas.length) { body.innerHTML='<tr><td colspan="8" class="empty-state">Nenhuma venda ainda.</td></tr>'; return; }
     body.innerHTML = vendas.map(v => `<tr>

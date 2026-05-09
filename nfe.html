@@ -349,7 +349,8 @@ function iniciarPagina() {
 
 async function carregar() {
   try {
-    const vendas = await get(API.vendas);
+    const res = await get(API.vendas);
+    const vendas = Array.isArray(res) ? res : [];
     const sel = document.getElementById('sel-venda');
     sel.innerHTML = '<option value="">— Selecionar venda —</option>' +
       vendas.filter(v => v.status === 'CONCLUIDA').map(v =>
@@ -358,7 +359,8 @@ async function carregar() {
   } catch {}
 
   try {
-    const notas = await get(API.nfe);
+    const resNotas = await get(API.nfe);
+    const notas = Array.isArray(resNotas) ? resNotas : [];
     document.getElementById('nfe-count').textContent = notas.length + ' notas';
     const body = document.getElementById('nfe-body');
     if (!notas.length) {

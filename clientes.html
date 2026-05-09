@@ -127,7 +127,10 @@
 <script src="api.js"></script>
 <script>
 let clientes = [];
-document.addEventListener('DOMContentLoaded', () => maskCpf(document.getElementById('f-cpf')));
+document.addEventListener('DOMContentLoaded', () => {
+  const cpfInput = document.getElementById('f-cpf');
+  if (cpfInput) maskCpf(cpfInput);
+});
 
 async function carregar() {
   try {

@@ -49,6 +49,85 @@
   --bottom-nav-h:  62px;
 }
 
+/* ══ TEMA ESCURO ═══════════════════════════════════════════ */
+[data-theme="dark"] {
+  /* Verdes — mantém identidade, ajusta brilho */
+  --emerald:       #22c55e;
+  --emerald-dark:  #bbf7d0;        /* textos que eram verde-escuro viram verde-claro */
+  --emerald-mid:   #4ade80;
+  --emerald-dim:   rgba(34,197,94,.15);
+  --emerald-glow:  rgba(34,197,94,.07);
+
+  /* Superfícies escuras */
+  --ink:           #0f1a13;        /* fundo da página */
+  --ink2:          #1a2a1e;        /* fundo secundário */
+  --surface:       #162019;        /* cards, painéis */
+  --surface2:      #1c2b20;        /* cabeçalhos de tabela */
+
+  /* Bordas */
+  --border:        #2a3d2e;
+  --border-strong: #3a5140;
+
+  /* Texto */
+  --text:          #e8f5ec;
+  --text-dim:      #6b8f75;
+  --text-mid:      #a3c4ac;
+
+  /* Status — fundos adaptados ao escuro */
+  --red-bg:        #2d1515;
+  --red-border:    #7f1d1d;
+  --yellow-bg:     #2d2208;
+  --yellow-border: #78450a;
+  --green-bg:      #0d2117;
+  --green-border:  #166534;
+  --green-text:    #4ade80;
+}
+
+/* Sidebar mantém verde-floresta no escuro (já é escuro) */
+[data-theme="dark"] .sidebar {
+  background: #0a1a0e;
+  border-right-color: #1e3323;
+}
+[data-theme="dark"] .sidebar-logo { color: #e8f5ec; }
+[data-theme="dark"] .nav-item { color: #a3c4ac; }
+[data-theme="dark"] .nav-item:hover { background: rgba(34,197,94,.1); color: #4ade80; }
+[data-theme="dark"] .nav-item.active { background: rgba(34,197,94,.15); color: #4ade80; }
+[data-theme="dark"] .sidebar-footer { color: #6b8f75; border-top-color: #1e3323; }
+
+/* Topbar */
+[data-theme="dark"] .topbar { background: var(--surface); border-bottom-color: var(--border); }
+[data-theme="dark"] .topbar-title { color: var(--emerald-mid); }
+
+/* Inputs e selects */
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select {
+  background: var(--ink2);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+[data-theme="dark"] .form-input::placeholder { color: var(--text-dim); }
+[data-theme="dark"] .form-select option { background: #1a2a1e; color: var(--text); }
+
+/* Botões ghost */
+[data-theme="dark"] .btn-ghost {
+  border-color: var(--border-strong);
+  color: var(--text-mid);
+}
+[data-theme="dark"] .btn-ghost:hover { background: var(--ink2); }
+
+/* Tabelas */
+[data-theme="dark"] tbody tr:hover { background: var(--ink2); }
+
+/* Modais */
+[data-theme="dark"] .modal-bg { background: rgba(0,0,0,.7); }
+
+/* Badges de status */
+[data-theme="dark"] .badge-gray { background: #1e3323; color: var(--text-dim); border-color: var(--border); }
+
+/* Scrollbar sutil */
+[data-theme="dark"] ::-webkit-scrollbar-track { background: var(--ink); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius:4px; }
+
 /* ── Reset ────────────────────────────────────────────────── */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }

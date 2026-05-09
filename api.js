@@ -38,7 +38,8 @@ window._decodeJWT = function(token) {
   } catch { return {}; }
 };
 
-window.getToken      = () => localStorage.getItem('sb_token') || '';
+window.getToken        = () => localStorage.getItem('sb_token')        || '';
+window.getRefreshToken = () => localStorage.getItem('sb_refresh_token') || '';
 
 /** Todas as claims vêm do JWT assinado — nunca do localStorage. */
 window._claims       = () => window._decodeJWT(localStorage.getItem('sb_token') || '');
@@ -61,10 +62,69 @@ window.setViewingBusiness = (id, nome, emailVinculado) => {
 
 window.logout = () => {
   localStorage.removeItem('sb_token');
+  localStorage.removeItem('sb_refresh_token');  // limpa refresh token também
   localStorage.removeItem('sb_trial_setup_done');
   sessionStorage.clear();
   window.location.href = 'login.html';
 };
+
+// ─── JWT Refresh ─────────────────────────────────────────────────────────────
+
+/**
+ * Retorna quantos segundos faltam para o access token expirar.
+ * Retorna 0 se o token for inválido ou já tiver expirado.
+ */
+window._secondsUntilExpiry = function(token) {
+  try {
+    const exp = window._decodeJWT(token).exp;
+    if (!exp) return 0;
+    return exp - Math.floor(Date.now() / 1000);
+  } catch { return 0; }
+};
+
+/**
+ * Tenta renovar o access token usando o refresh token armazenado em
+ * localStorage('sb_refresh_token').
+ *
+ * Retorna true se conseguiu renovar (novos tokens já salvos).
+ * Retorna false se o refresh token não existir ou também expirou —
+ * nesse caso limpa o storage mas NÃO redireciona (quem decide é quem chamou).
+ *
+ * NOTA BACKEND: o CustomOAuth2SuccessHandler também precisa incluir
+ * o refreshToken na URL de redirect, para que o login-success.html
+ * salve localStorage('sb_refresh_token'). Exemplo de redirect:
+ *   /login-success.html?token=XXX&refreshToken=YYY
+ */
+async function _tryRefresh() {
+  const refreshToken = localStorage.getItem('sb_refresh_token');
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken })
+    });
+
+    if (!res.ok) {
+      // Refresh inválido/expirado — limpa tudo
+      localStorage.removeItem('sb_token');
+      localStorage.removeItem('sb_refresh_token');
+      return false;
+    }
+
+    const data = await res.json();
+    localStorage.setItem('sb_token',         data.token);
+    localStorage.setItem('sb_refresh_token', data.refreshToken); // rotação: sempre salva o novo
+    return true;
+
+  } catch {
+    // Falha de rede — não limpa tokens (pode ser offline temporário)
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 (function guardRoute() {
   const page = window.location.pathname.split('/').pop() || 'index.html';
@@ -97,18 +157,42 @@ function _injectViewingUser(url) {
 }
 
 async function api(url, opts = {}) {
-  const token = localStorage.getItem('sb_token');
-  const headers = {
+  let token = localStorage.getItem('sb_token');
+
+  // ── Refresh proativo ──────────────────────────────────────────────────────
+  // Se o access token expirar em menos de 5 minutos, renova silenciosamente
+  // ANTES de fazer a chamada. O usuário nunca percebe.
+  if (token && window._secondsUntilExpiry(token) < 300) {
+    await _tryRefresh();
+    token = localStorage.getItem('sb_token');
+  }
+
+  const buildHeaders = (tk) => ({
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
-  const res = await fetch(_injectViewingUser(url), { headers, ...opts });
+    ...(tk ? { 'Authorization': `Bearer ${tk}` } : {})
+  });
+
+  let res = await fetch(_injectViewingUser(url), { headers: buildHeaders(token), ...opts });
+
+  // ── Retry após 401 ────────────────────────────────────────────────────────
+  // 401 inesperado (token revogado no servidor, deploy, etc.):
+  // tenta o refresh uma vez antes de redirecionar para login.
   if (res.status === 401 && !window.location.pathname.includes('login.html')) {
-    localStorage.removeItem('sb_token');
-    window.location.href = 'login.html';
-    return;
+    const refreshed = await _tryRefresh();
+    if (refreshed) {
+      token = localStorage.getItem('sb_token');
+      res   = await fetch(_injectViewingUser(url), { headers: buildHeaders(token), ...opts });
+    }
+    // Ainda 401 após tentativa de refresh → sessão morta, força login
+    if (res.status === 401) {
+      localStorage.removeItem('sb_token');
+      localStorage.removeItem('sb_refresh_token');
+      window.location.href = 'login.html';
+      return;
+    }
   }
+
   // 402 = trial expirado — redireciona para página de upgrade
   if (res.status === 402) {
     const page = window.location.pathname.split('/').pop();
@@ -117,6 +201,7 @@ async function api(url, opts = {}) {
     }
     return;
   }
+
   if (!res.ok) throw new Error(await res.text().catch(() => 'Erro desconhecido'));
   const ct = res.headers.get('content-type') || '';
   return ct.includes('json') ? res.json() : res.text();

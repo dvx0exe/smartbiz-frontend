@@ -1,3 +1,10 @@
+// ── Tema salvo — aplica ANTES do render para evitar flash ────
+(function(){
+  if (localStorage.getItem('sb_theme') === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+
 // ── Backend URL — sempre HTTPS, nunca lido de localStorage ──────────────────
 // CORREÇÃO Mixed Content: a URL era salva como http:// em versões antigas do app.
 // Agora é fixa no código; qualquer valor antigo em localStorage é removido.
@@ -197,17 +204,89 @@ document.addEventListener('DOMContentLoaded', () => {
   const footer = document.querySelector('.sidebar-footer');
   if (footer) footer.innerHTML = `<p>SmartBiz v1.0</p>`;
 
-  // Topbar direita: email + role + botão Sair (substitui API Conectada + relógio)
+  // ── USER MENU DROPDOWN ────────────────────────────────────────
   const topbarRight = document.querySelector('.topbar-right');
   if (topbarRight && email) {
-    topbarRight.innerHTML = `
-      ${ role === 'ADMIN' && nome ? `<a href="admin-dashboard.html" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:3px;letter-spacing:1px;text-decoration:none;white-space:nowrap;">← Todos os Negócios</a>` : '' }
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
-        <span style="font-size:11px;color:var(--text-mid);font-family:'DM Mono',monospace;">${email}</span>
-        <span class="badge ${role==='ADMIN'?'badge-green':'badge-blue'}" style="font-size:8px;">${role}</span>
+    const initials = email.split('@')[0].slice(0,2).toUpperCase();
+    const isDark   = localStorage.getItem('sb_theme') === 'dark';
+
+    const adminLink = (role === 'ADMIN' && nome)
+      ? `<div class="sb-dd-item" onclick="location.href='admin-dashboard.html'">
+           <span class="sb-dd-item-icon">🏢</span>Todos os Negócios
+         </div><div class="sb-dd-sep"></div>`
+      : '';
+
+    const menuHtml = `
+      <div class="sb-user-pill" id="sb-user-pill">
+        <div class="sb-user-avatar">${initials}</div>
+        <div class="sb-user-info">
+          <span class="sb-user-email">${email}</span>
+          <span class="sb-user-role">${role}</span>
+        </div>
+        <span class="sb-chevron">▾</span>
+
+        <div class="sb-dropdown" id="sb-dropdown">
+          <div class="sb-dd-header">
+            <div class="sb-dd-email">${email}</div>
+            <span class="badge ${role==='ADMIN'?'badge-green':'badge-blue'}" style="font-size:8px;">${role}</span>
+          </div>
+
+          <div class="sb-dd-sep"></div>
+
+          <div class="sb-dd-item" id="sb-theme-item">
+            <span class="sb-dd-item-icon">🌙</span>
+            Tema escuro
+            <div class="sb-theme-toggle">
+              <div class="sb-toggle-track ${isDark?'on':''}" id="sb-toggle">
+                <div class="sb-toggle-thumb"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sb-dd-sep"></div>
+
+          ${adminLink}
+
+          <div class="sb-dd-item danger" onclick="logout()">
+            <span class="sb-dd-item-icon">⏻</span>
+            Sair da conta
+          </div>
+        </div>
       </div>
-      <button onclick="logout()" style="background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.4);color:#ff6b6b;padding:6px 14px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;">⏻ SAIR</button>
     `;
+
+    // Insere antes de qualquer conteúdo existente
+    topbarRight.insertAdjacentHTML('afterbegin', menuHtml);
+
+    const pill     = document.getElementById('sb-user-pill');
+    const dropdown = document.getElementById('sb-dropdown');
+    const toggle   = document.getElementById('sb-toggle');
+
+    // Abrir / fechar dropdown
+    pill.addEventListener('click', e => {
+      const open = dropdown.classList.toggle('open');
+      pill.classList.toggle('open', open);
+      e.stopPropagation();
+    });
+    document.addEventListener('click', () => {
+      dropdown.classList.remove('open');
+      pill.classList.remove('open');
+    });
+    dropdown.addEventListener('click', e => e.stopPropagation());
+
+    // Toggle de tema
+    toggle.addEventListener('click', e => {
+      e.stopPropagation();
+      const nowDark = !toggle.classList.contains('on');
+      toggle.classList.toggle('on', nowDark);
+      if (nowDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('sb_theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('sb_theme', 'light');
+      }
+    });
   }
 });
 

@@ -55,6 +55,27 @@
     display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;
   }
   @media(max-width:600px){.admin-stats{grid-template-columns:1fr 1fr;}.biz-grid{grid-template-columns:1fr;}}
+
+  /* ── Modal de confirmação de exclusão ─────────────────────── */
+  .sb-confirm-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);
+    display:flex;align-items:center;justify-content:center;
+    z-index:9999;opacity:0;pointer-events:none;
+    transition:opacity .18s;
+  }
+  .sb-confirm-overlay.show{opacity:1;pointer-events:all;}
+  .sb-confirm-box{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:28px 28px 20px;max-width:380px;width:90%;
+    box-shadow:0 16px 48px rgba(0,0,0,.45);
+    transform:translateY(-8px);transition:transform .18s;
+  }
+  .sb-confirm-overlay.show .sb-confirm-box{transform:translateY(0);}
+  .sb-confirm-icon{font-size:32px;margin-bottom:10px;}
+  .sb-confirm-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;}
+  .sb-confirm-msg{font-size:13px;color:var(--text-dim);margin-bottom:22px;line-height:1.6;}
+  .sb-confirm-msg strong{color:var(--text);}
+  .sb-confirm-actions{display:flex;gap:10px;justify-content:flex-end;}
 </style>
 </head>
 <body>
@@ -121,6 +142,19 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="sb-confirm-overlay" id="confirmOverlay">
+  <div class="sb-confirm-box">
+    <div class="sb-confirm-icon">🗑️</div>
+    <div class="sb-confirm-title">Excluir negócio?</div>
+    <div class="sb-confirm-msg">Você está prestes a excluir <strong id="confirmNome"></strong>. Esta ação não pode ser desfeita.</div>
+    <div class="sb-confirm-actions">
+      <button class="btn btn-ghost btn-sm" id="confirmCancelar">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="confirmOk">Excluir</button>
+    </div>
+  </div>
+</div>
 <script src="api.js"></script>
 <script>
 /* Relógio */
@@ -183,13 +217,17 @@ function renderCards(lista) {
       </div>`;
     return;
   }
+  // Usa data-* attributes para evitar quebra com nomes/e-mails que contenham aspas ou caracteres especiais
   wrap.innerHTML = lista.map(n => `
-    <div class="biz-card" onclick="entrarNegocio('${n.id}','${(n.nome||'').replace(/'/g,"\\'")}','${(n.emailVinculado||'').replace(/'/g,"\\'")}')">
+    <div class="biz-card"
+      data-id="${n.id}"
+      data-nome="${(n.nome||'').replace(/"/g,'&quot;')}"
+      data-email="${(n.emailVinculado||'').replace(/"/g,'&quot;')}">
       <div class="biz-card-top">
         <div class="biz-icon">${iconeTipo(n.tipo)}</div>
-        <div class="biz-actions" onclick="event.stopPropagation()">
+        <div class="biz-actions">
           <a href="admin-cadastro.html?id=${n.id}" class="btn btn-ghost btn-sm" title="Editar">✏️</a>
-          <button class="btn btn-danger btn-sm" onclick="excluir('${n.id}','${(n.nome||'').replace(/'/g,"\\'")}')" title="Excluir">🗑</button>
+          <button class="btn btn-danger btn-sm btn-excluir" data-id="${n.id}" data-nome="${(n.nome||'—').replace(/"/g,'&quot;')}" title="Excluir">🗑</button>
         </div>
       </div>
       <div class="biz-name">${n.nome || '—'}</div>
@@ -199,7 +237,7 @@ function renderCards(lista) {
         <span>${n.emailVinculado || 'Sem e-mail vinculado'}</span>
       </div>
       <div class="biz-footer">
-        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();entrarNegocio('${n.id}','${(n.nome||'').replace(/'/g,"\\'")}','${(n.emailVinculado||'').replace(/'/g,"\\'")}')">
+        <button class="btn btn-primary btn-sm btn-entrar" data-id="${n.id}">
           Acessar Dashboard →
         </button>
       </div>
@@ -207,23 +245,77 @@ function renderCards(lista) {
   `).join('');
 }
 
+// Event delegation — evita onclick inline com strings escapadas
+document.getElementById('biz-grid-wrap').addEventListener('click', function(e) {
+  // Clique no botão Excluir
+  const btnEx = e.target.closest('.btn-excluir');
+  if (btnEx) {
+    e.stopPropagation();
+    abrirConfirm(btnEx.dataset.id, btnEx.dataset.nome);
+    return;
+  }
+  // Clique no botão Acessar Dashboard
+  const btnEn = e.target.closest('.btn-entrar');
+  if (btnEn) {
+    e.stopPropagation();
+    const card = btnEn.closest('.biz-card');
+    entrarNegocio(card.dataset.id, card.dataset.nome, card.dataset.email);
+    return;
+  }
+  // Clique no card inteiro (fora dos botões de ação)
+  const card = e.target.closest('.biz-card');
+  if (card && !e.target.closest('.biz-actions') && !e.target.closest('.biz-footer')) {
+    entrarNegocio(card.dataset.id, card.dataset.nome, card.dataset.email);
+  }
+});
+
 function entrarNegocio(id, nome, emailVinculado) {
-  // Passa também o emailVinculado — o backend usa este e-mail para
-  // filtrar os dados (clientes, produtos, vendas etc.) do negócio correto
   setViewingBusiness(id, nome, emailVinculado);
   window.location.href = 'cadastro.html';
 }
 
-async function excluir(id, nome) {
-  if (!confirm(`Excluir o negócio "${nome}"? Esta ação não pode ser desfeita.`)) return;
+// ── Modal de confirmação (substitui confirm() que é bloqueado em HTTPS) ──
+let _pendingDeleteId = null;
+
+function abrirConfirm(id, nome) {
+  _pendingDeleteId = id;
+  document.getElementById('confirmNome').textContent = nome || 'este negócio';
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+document.getElementById('confirmCancelar').addEventListener('click', () => {
+  _pendingDeleteId = null;
+  document.getElementById('confirmOverlay').classList.remove('show');
+});
+
+document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+  if (e.target === this) {
+    _pendingDeleteId = null;
+    this.classList.remove('show');
+  }
+});
+
+document.getElementById('confirmOk').addEventListener('click', async () => {
+  const id = _pendingDeleteId;
+  if (!id) return;
+  _pendingDeleteId = null;
+  document.getElementById('confirmOverlay').classList.remove('show');
+
+  const btn = document.getElementById('confirmOk');
+  btn.disabled = true;
+  btn.textContent = 'Excluindo…';
+
   try {
     await del(`${API.negocios}/${id}`);
     toast('Negócio excluído com sucesso.');
     carregar();
   } catch(e) {
     toast('Erro ao excluir: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Excluir';
   }
-}
+});
 
 carregar();
 </script>

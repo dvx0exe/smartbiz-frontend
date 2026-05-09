@@ -353,10 +353,77 @@ tbody tr:last-child td { border-bottom:none; }
 @keyframes fadein { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 @keyframes slideup { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
-/* ══ USER PILL (topbar) ═══════════════════════════════════════ */
+/* ══ USER PILL (topbar) — legado ══════════════════════════════ */
 .user-pill { display:flex; align-items:center; gap:8px; padding:5px 12px; border:1px solid var(--border); border-radius:20px; cursor:pointer; font-size:12px; color:var(--text-mid); font-weight:500; }
 .user-avatar { width:26px; height:26px; border-radius:50%; background:var(--green-bg); font-size:10px; font-weight:700; color:var(--green-text); display:flex; align-items:center; justify-content:center; border:1px solid var(--green-border); }
 .role-badge { font-size:9px; background:var(--green-bg); color:var(--green-text); border:1px solid var(--green-border); border-radius:3px; padding:1px 6px; font-family:'DM Mono',monospace; letter-spacing:.5px; text-transform:uppercase; }
+
+/* ══ SB USER PILL + DROPDOWN (api.js) ════════════════════════ */
+.sb-user-pill {
+  position:relative; display:flex; align-items:center; gap:7px;
+  padding:4px 10px 4px 5px; border:1px solid var(--border);
+  border-radius:20px; cursor:pointer; user-select:none;
+  transition:border-color .15s, background .15s;
+}
+.sb-user-pill:hover, .sb-user-pill.open {
+  border-color:rgba(0,200,150,.4); background:rgba(0,200,150,.06);
+}
+.sb-user-avatar {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--green-bg); font-size:10px; font-weight:700;
+  color:var(--green-text); display:flex; align-items:center;
+  justify-content:center; border:1px solid var(--green-border); flex-shrink:0;
+}
+/* sb-user-info hidden in pill — info lives only inside dropdown */
+.sb-user-info { display:none; }
+.sb-chevron {
+  font-size:10px; color:var(--text-dim); line-height:1;
+  transition:transform .2s;
+}
+.sb-user-pill.open .sb-chevron { transform:rotate(180deg); }
+
+/* dropdown panel */
+.sb-dropdown {
+  position:absolute; top:calc(100% + 8px); right:0; min-width:230px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,.35);
+  z-index:1000; overflow:hidden;
+  opacity:0; transform:translateY(-6px); pointer-events:none;
+  transition:opacity .15s, transform .15s;
+}
+.sb-dropdown.open { opacity:1; transform:translateY(0); pointer-events:all; }
+
+.sb-dd-header {
+  padding:12px 14px 10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.sb-dd-email {
+  font-size:12px; color:var(--text-mid); flex:1; min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sb-dd-sep { height:1px; background:var(--border); }
+
+.sb-dd-item {
+  display:flex; align-items:center; gap:9px; padding:10px 14px;
+  font-size:13px; color:var(--text-mid); cursor:pointer;
+  transition:background .12s, color .12s;
+}
+.sb-dd-item:hover { background:rgba(0,200,150,.07); color:var(--text); }
+.sb-dd-item.danger { color:#f87171; }
+.sb-dd-item.danger:hover { background:rgba(248,113,113,.07); color:#ef4444; }
+.sb-dd-item-icon { font-size:14px; flex-shrink:0; }
+
+/* toggle de tema */
+.sb-theme-toggle { margin-left:auto; }
+.sb-toggle-track {
+  width:32px; height:18px; border-radius:9px; background:var(--border);
+  position:relative; cursor:pointer; transition:background .2s;
+}
+.sb-toggle-track.on { background:var(--emerald); }
+.sb-toggle-thumb {
+  position:absolute; top:2px; left:2px; width:14px; height:14px;
+  border-radius:50%; background:#fff; transition:left .2s;
+}
+.sb-toggle-track.on .sb-toggle-thumb { left:16px; }
 
 /* ══ TABLET (≤1100px) ═════════════════════════════════════════ */
 @media(max-width:1100px) {

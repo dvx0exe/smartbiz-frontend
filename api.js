@@ -16,7 +16,6 @@ window.API = {
   lancamentos:    `${BASE_API}/lancamentos`,
   vendas:         `${BASE_API}/vendas`,
   nfe:            `${BASE_API}/nfe`,
-  dashboardStats: `${BASE_API}/dashboard/stats`,
   authGoogle:     `${BASE_AUTH}/oauth2/authorization/google`
 };
 

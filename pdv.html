@@ -34,6 +34,45 @@
 .ticket-title { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--emerald); margin-bottom:8px; text-transform:uppercase; }
 .ticket-row { display:flex; justify-content:space-between; font-size:12px; padding:2px 0; }
 .ticket-total { border-top:1px solid var(--border); margin-top:8px; padding-top:8px; font-weight:600; }
+
+/* ── Modal PIX ────────────────────────────────────────────── */
+.pix-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.pix-overlay.show{opacity:1;pointer-events:all;}
+.pix-modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:28px 28px 22px;width:90%;max-width:400px;
+  box-shadow:0 24px 64px rgba(0,0,0,.6);
+  transform:translateY(-12px);transition:transform .2s;text-align:center;
+}
+.pix-overlay.show .pix-modal{transform:translateY(0);}
+.pix-logo{font-size:32px;margin-bottom:4px;}
+.pix-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:2px;}
+.pix-amount{font-family:'Syne',monospace;font-size:32px;font-weight:800;color:var(--emerald);margin:10px 0;}
+.pix-qr{
+  background:#fff;border-radius:10px;padding:12px;
+  display:inline-flex;margin:8px auto 12px;
+}
+.pix-timer{
+  font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);
+  margin-bottom:10px;
+}
+.pix-timer span{color:var(--emerald);font-weight:600;}
+.pix-copy-wrap{
+  display:flex;gap:6px;align-items:center;margin-bottom:16px;
+}
+.pix-code{
+  background:var(--ink,#0f1a13);border:1px solid var(--border);
+  border-radius:6px;padding:8px 10px;font-family:'DM Mono',monospace;
+  font-size:9px;color:var(--text-dim);flex:1;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;text-align:left;
+  cursor:pointer;
+}
+.pix-actions{display:flex;flex-direction:column;gap:8px;}
+.pix-info{font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.5;}
 </style>
 </head>
 <body>

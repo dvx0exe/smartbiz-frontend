@@ -8,74 +8,75 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
-  /* grid de cards de negócios */
-  .biz-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:16px;
-  }
-  .biz-card{
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:6px;
-    padding:20px;
-    transition:all .2s;
-    cursor:pointer;
-    position:relative;
-    overflow:hidden;
-  }
-  .biz-card::before{
-    content:'';position:absolute;top:0;left:0;right:0;height:2px;
-    background:var(--emerald);opacity:0;transition:opacity .2s;
-  }
+  .biz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;}
+  .biz-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 18px 14px;transition:all .2s;cursor:pointer;position:relative;overflow:hidden;}
+  .biz-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--emerald);opacity:0;transition:opacity .2s;}
   .biz-card:hover{border-color:rgba(0,200,150,.35);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
   .biz-card:hover::before{opacity:1;}
-  .biz-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
-  .biz-icon{
-    width:40px;height:40px;border-radius:8px;
-    background:var(--emerald-dim);border:1px solid rgba(0,200,150,.2);
-    display:flex;align-items:center;justify-content:center;font-size:20px;
-  }
-  .biz-actions{display:flex;gap:6px;}
-  .biz-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;}
-  .biz-tipo{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:10px;}
-  .biz-email{font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:6px;}
-  .biz-footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px;}
+  .biz-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+  .biz-icon{width:40px;height:40px;border-radius:8px;background:var(--emerald-dim);border:1px solid rgba(0,200,150,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .biz-actions{display:flex;gap:6px;align-items:center;}
+  .biz-name{font-family:"Syne",sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;}
+  .biz-tipo{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase;margin-bottom:8px;}
+  .biz-email{font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+  .biz-footer{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:6px;}
   .biz-footer .btn{flex:1;justify-content:center;}
+  .empty-big{text-align:center;padding:60px 20px;color:var(--text-dim);grid-column:1/-1;}
+  .empty-big .icon{font-size:40px;margin-bottom:12px;display:block;}
+  .empty-big p{font-size:13px;margin-bottom:16px;}
 
-  /* empty state grande */
-  .empty-big{
-    text-align:center;padding:80px 20px;color:var(--text-dim);
-  }
-  .empty-big .icon{font-size:48px;margin-bottom:16px;display:block;}
-  .empty-big p{font-size:14px;margin-bottom:20px;}
+  /* Plan badges */
+  .plan-badge{display:inline-flex;align-items:center;gap:4px;font-family:"DM Mono",monospace;font-size:9px;font-weight:500;letter-spacing:.5px;padding:3px 7px;border-radius:4px;text-transform:uppercase;border:1px solid transparent;}
+  .plan-trial{background:#2d2208;color:#fbbf24;border-color:#78450a;}
+  .plan-trial-exp{background:#2d1515;color:#f87171;border-color:#7f1d1d;}
+  .plan-essencial{background:#0d2117;color:#4ade80;border-color:#166534;}
+  .plan-essencial-free{background:#1a2030;color:#7dd3fc;border-color:#1e4060;}
+  .plan-crescimento{background:#1f1040;color:#c084fc;border-color:#5b21b6;}
+  .plan-empresarial{background:#2a1a00;color:#fbbf24;border-color:#92400e;}
+  .plan-expirado{background:#2d1515;color:#f87171;border-color:#7f1d1d;}
 
-  /* stat strip */
-  .admin-stats{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;
-  }
-  @media(max-width:600px){.admin-stats{grid-template-columns:1fr 1fr;}.biz-grid{grid-template-columns:1fr;}}
+  /* Stats */
+  .admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .plan-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+  .plan-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s;}
+  .plan-stat-card:hover,.plan-stat-card.active{border-color:rgba(0,200,150,.4);background:rgba(0,200,150,.05);}
+  .plan-stat-card.active .plan-stat-num{color:var(--emerald);}
+  .plan-stat-icon{font-size:16px;margin-bottom:6px;}
+  .plan-stat-num{font-family:"Syne",sans-serif;font-size:22px;font-weight:800;color:var(--text);}
+  .plan-stat-label{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);margin-top:2px;}
 
-  /* ── Modal de confirmação de exclusão ─────────────────────── */
-  .sb-confirm-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,.55);
-    display:flex;align-items:center;justify-content:center;
-    z-index:9999;opacity:0;pointer-events:none;
-    transition:opacity .18s;
-  }
-  .sb-confirm-overlay.show{opacity:1;pointer-events:all;}
-  .sb-confirm-box{
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:10px;padding:28px 28px 20px;max-width:380px;width:90%;
-    box-shadow:0 16px 48px rgba(0,0,0,.45);
-    transform:translateY(-8px);transition:transform .18s;
-  }
-  .sb-confirm-overlay.show .sb-confirm-box{transform:translateY(0);}
-  .sb-confirm-icon{font-size:32px;margin-bottom:10px;}
-  .sb-confirm-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;}
-  .sb-confirm-msg{font-size:13px;color:var(--text-dim);margin-bottom:22px;line-height:1.6;}
-  .sb-confirm-msg strong{color:var(--text);}
-  .sb-confirm-actions{display:flex;gap:10px;justify-content:flex-end;}
+  /* Filter buttons */
+  .plan-filters{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--border);}
+  .plan-filter-btn{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.5px;padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .15s;text-transform:uppercase;}
+  .plan-filter-btn:hover{border-color:rgba(0,200,150,.4);color:var(--text);}
+  .plan-filter-btn.active{background:rgba(0,200,150,.1);border-color:var(--emerald);color:var(--emerald);}
+
+  /* Modals */
+  .sb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .18s;}
+  .sb-overlay.show{opacity:1;pointer-events:all;}
+  .sb-modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:90%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.5);transform:translateY(-10px);transition:transform .18s;}
+  .sb-overlay.show .sb-modal{transform:translateY(0);}
+  .sb-modal-icon{font-size:28px;margin-bottom:8px;}
+  .sb-modal-title{font-family:"Syne",sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;}
+  .sb-modal-sub{font-size:12px;color:var(--text-dim);margin-bottom:20px;line-height:1.5;}
+  .sb-modal-sub strong{color:var(--text);}
+  .sb-modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+  /* Plan selector */
+  .plan-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+  .plan-option{border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all .15s;text-align:left;background:transparent;width:100%;}
+  .plan-option:hover{border-color:rgba(0,200,150,.4);}
+  .plan-option.selected{border-color:var(--emerald);background:rgba(0,200,150,.07);}
+  .plan-option-icon{font-size:18px;margin-bottom:5px;}
+  .plan-option-name{font-family:"Syne",sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+  .plan-option-price{font-family:"DM Mono",monospace;font-size:10px;color:var(--text-dim);margin-top:2px;}
+  .plan-extra{margin-top:12px;display:flex;flex-direction:column;gap:10px;}
+  .plan-extra-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);}
+  .plan-extra label{display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);}
+  .plan-extra input[type=checkbox]{accent-color:var(--emerald);width:14px;height:14px;}
+  .plan-extra input[type=datetime-local]{background:var(--ink,#0f1a13);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:12px;flex:1;min-width:0;}
+
+  @media(max-width:700px){.admin-stats{grid-template-columns:1fr 1fr;}.plan-stats{grid-template-columns:1fr 1fr;}.biz-grid{grid-template-columns:1fr;}.plan-options{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
@@ -86,11 +87,7 @@
   <a class="nav-item active" href="admin-dashboard.html"><span class="nav-icon">🏢</span>Todos os Negócios</a>
   <a class="nav-item" href="admin-cadastro.html"><span class="nav-icon">➕</span>Cadastrar Negócio</a>
   <a class="nav-item" href="admin-nfe.html"><span class="nav-icon">🧾</span>Gerenciar NF-e</a>
-
-  <div class="sidebar-footer">
-    <!-- preenchido por api.js -->
-    <p>SmartBiz v1.0</p>
-  </div>
+  <div class="sidebar-footer"><p>SmartBiz v1.0</p></div>
 </aside>
 
 <div class="main">
@@ -102,7 +99,6 @@
   </div>
 
   <div class="content">
-    <!-- Stats gerais -->
     <div class="admin-stats">
       <div class="stat-card">
         <div class="stat-label">Negócios Cadastrados</div>
@@ -121,20 +117,50 @@
       </div>
     </div>
 
-    <!-- Cabeçalho + busca -->
+    <div class="plan-stats">
+      <div class="plan-stat-card" id="pstat-trial" onclick="filtrarPlano('TRIAL',null)">
+        <div class="plan-stat-icon">🧪</div>
+        <div class="plan-stat-num" id="ps-trial">—</div>
+        <div class="plan-stat-label">Trial 7 dias</div>
+      </div>
+      <div class="plan-stat-card" id="pstat-essencial" onclick="filtrarPlano('ESSENCIAL',null)">
+        <div class="plan-stat-icon">📗</div>
+        <div class="plan-stat-num" id="ps-essencial">—</div>
+        <div class="plan-stat-label">Essencial</div>
+      </div>
+      <div class="plan-stat-card" id="pstat-crescimento" onclick="filtrarPlano('CRESCIMENTO',null)">
+        <div class="plan-stat-icon">⭐</div>
+        <div class="plan-stat-num" id="ps-crescimento">—</div>
+        <div class="plan-stat-label">Crescimento</div>
+      </div>
+      <div class="plan-stat-card" id="pstat-empresarial" onclick="filtrarPlano('EMPRESARIAL',null)">
+        <div class="plan-stat-icon">💎</div>
+        <div class="plan-stat-num" id="ps-empresarial">—</div>
+        <div class="plan-stat-label">Empresarial</div>
+      </div>
+    </div>
+
     <div class="panel">
       <div class="panel-header">
         Negócios Cadastrados
-        <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <input id="search-input" class="form-input" placeholder="Buscar negócio..."
-            style="width:200px;padding:5px 10px;font-size:12px;" oninput="filtrar()">
+            style="width:190px;padding:5px 10px;font-size:12px;" oninput="aplicarFiltros()">
           <a href="admin-cadastro.html" class="btn btn-primary btn-sm">+ Cadastrar</a>
           <button class="btn btn-ghost btn-sm" onclick="carregar()">↻</button>
         </div>
       </div>
+      <div class="plan-filters">
+        <button class="plan-filter-btn active" data-filter="TODOS" onclick="filtrarPlano('TODOS',this)">Todos</button>
+        <button class="plan-filter-btn" data-filter="TRIAL" onclick="filtrarPlano('TRIAL',this)">🧪 Trial</button>
+        <button class="plan-filter-btn" data-filter="EXPIRADO" onclick="filtrarPlano('EXPIRADO',this)">⚠️ Expirado</button>
+        <button class="plan-filter-btn" data-filter="ESSENCIAL" onclick="filtrarPlano('ESSENCIAL',this)">📗 Essencial</button>
+        <button class="plan-filter-btn" data-filter="CRESCIMENTO" onclick="filtrarPlano('CRESCIMENTO',this)">⭐ Crescimento</button>
+        <button class="plan-filter-btn" data-filter="EMPRESARIAL" onclick="filtrarPlano('EMPRESARIAL',this)">💎 Empresarial</button>
+      </div>
       <div class="panel-body">
         <div id="biz-grid-wrap" class="biz-grid">
-          <div class="empty-state">Carregando negócios...</div>
+          <div class="empty-state" style="grid-column:1/-1;">Carregando negócios...</div>
         </div>
       </div>
     </div>
@@ -143,178 +169,256 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Modal de confirmação de exclusão -->
-<div class="sb-confirm-overlay" id="confirmOverlay">
-  <div class="sb-confirm-box">
-    <div class="sb-confirm-icon">🗑️</div>
-    <div class="sb-confirm-title">Excluir negócio?</div>
-    <div class="sb-confirm-msg">Você está prestes a excluir <strong id="confirmNome"></strong>. Esta ação não pode ser desfeita.</div>
-    <div class="sb-confirm-actions">
+<!-- Modal: confirmar exclusão -->
+<div class="sb-overlay" id="confirmOverlay">
+  <div class="sb-modal">
+    <div class="sb-modal-icon">🗑️</div>
+    <div class="sb-modal-title">Excluir negócio?</div>
+    <div class="sb-modal-sub">Você está prestes a excluir <strong id="confirmNome"></strong>. Todos os dados serão removidos e essa ação não pode ser desfeita.</div>
+    <div class="sb-modal-actions">
       <button class="btn btn-ghost btn-sm" id="confirmCancelar">Cancelar</button>
       <button class="btn btn-danger btn-sm" id="confirmOk">Excluir</button>
     </div>
   </div>
 </div>
+
+<!-- Modal: alterar plano -->
+<div class="sb-overlay" id="planoOverlay">
+  <div class="sb-modal">
+    <div class="sb-modal-icon">📋</div>
+    <div class="sb-modal-title">Alterar plano</div>
+    <div class="sb-modal-sub">Negócio: <strong id="planoNome"></strong></div>
+    <div class="plan-options">
+      <button class="plan-option" data-plano="TRIAL" onclick="selecionarPlano('TRIAL')">
+        <div class="plan-option-icon">🧪</div>
+        <div class="plan-option-name">Trial</div>
+        <div class="plan-option-price">7 dias gratuitos</div>
+      </button>
+      <button class="plan-option" data-plano="ESSENCIAL" onclick="selecionarPlano('ESSENCIAL')">
+        <div class="plan-option-icon">📗</div>
+        <div class="plan-option-name">Essencial</div>
+        <div class="plan-option-price">R$49/mês</div>
+      </button>
+      <button class="plan-option" data-plano="CRESCIMENTO" onclick="selecionarPlano('CRESCIMENTO')">
+        <div class="plan-option-icon">⭐</div>
+        <div class="plan-option-name">Crescimento</div>
+        <div class="plan-option-price">R$97/mês</div>
+      </button>
+      <button class="plan-option" data-plano="EMPRESARIAL" onclick="selecionarPlano('EMPRESARIAL')">
+        <div class="plan-option-icon">💎</div>
+        <div class="plan-option-name">Empresarial</div>
+        <div class="plan-option-price">R$197/mês</div>
+      </button>
+    </div>
+    <div class="plan-extra">
+      <div class="plan-extra-row" id="extra-gratuito" style="display:none;">
+        <label><input type="checkbox" id="cbGratuito"> Período gratuito de 30 dias (Essencial)</label>
+      </div>
+      <div class="plan-extra-row">
+        <span style="white-space:nowrap;flex-shrink:0;">Expira em:</span>
+        <input type="datetime-local" id="inputExpira">
+      </div>
+    </div>
+    <div class="sb-modal-actions">
+      <button class="btn btn-ghost btn-sm" id="planoCancelar">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="planoSalvar">Salvar plano</button>
+    </div>
+  </div>
+</div>
+
 <script src="api.js"></script>
 <script>
-/* Relógio */
 setInterval(() => {
   const el = document.getElementById('clock');
-  if (el) el.textContent =
-    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  if (el) el.textContent = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }, 1000);
 
-let todosNegocios = [];
-
-const TIPO_ICON = {
-  'Padaria':'🥐','Barbearia':'✂️','Loja':'🛒','Restaurante':'🍽️',
-  'Farmácia':'💊','Mercado':'🛒','Academia':'💪','Café':'☕',
-  'Pet Shop':'🐾','Salão':'💅','Clínica':'🏥','Oficina':'🔧',
-};
+const TIPO_ICON = {'Padaria':'🥐','Barbearia':'✂️','Loja de Jogos':'🎮','Loja de Roupas':'👗','Loja':'🛒','Restaurante':'🍽️','Farmácia':'💊','Mercado':'🛒','Academia':'💪','Café':'☕','Pet Shop':'🐾','Salão':'💅','Clínica':'🏥','Oficina':'🔧','Alimentação':'🍔','Varejo':'🏪'};
 function iconeTipo(tipo) {
   const t = tipo || '';
-  for (const [k,v] of Object.entries(TIPO_ICON)) {
-    if (t.toLowerCase().includes(k.toLowerCase())) return v;
-  }
+  for (const [k,v] of Object.entries(TIPO_ICON)) { if (t.toLowerCase().includes(k.toLowerCase())) return v; }
   return '🏪';
 }
+
+function infoPlan(n) {
+  const plano = (n.plano || 'TRIAL').toUpperCase();
+  const agora = new Date();
+  if (plano === 'TRIAL') {
+    if (n.trialExpiraEm) {
+      const expira = new Date(n.trialExpiraEm);
+      const dias = Math.ceil((expira - agora) / 86400000);
+      if (dias < 0) return {label:'⚠️ Trial expirado', cls:'plan-trial-exp', expirado:true};
+      return {label:`🧪 Trial · ${dias}d`, cls:'plan-trial', expirado:false};
+    }
+    return {label:'🧪 Trial', cls:'plan-trial', expirado:false};
+  }
+  if (plano === 'ESSENCIAL') {
+    if (n.periodoGratuito && n.planoExpiraEm) {
+      const expira = new Date(n.planoExpiraEm);
+      const dias = Math.ceil((expira - agora) / 86400000);
+      if (dias < 0) return {label:'⚠️ Essencial grátis expirado', cls:'plan-expirado', expirado:true};
+      return {label:`📗 Essencial · Grátis ${dias}d`, cls:'plan-essencial-free', expirado:false};
+    }
+    if (n.planoExpiraEm && new Date(n.planoExpiraEm) < agora) return {label:'⚠️ Essencial expirado', cls:'plan-expirado', expirado:true};
+    return {label:'📗 Essencial', cls:'plan-essencial', expirado:false};
+  }
+  if (plano === 'CRESCIMENTO') {
+    if (n.planoExpiraEm && new Date(n.planoExpiraEm) < agora) return {label:'⚠️ Crescimento expirado', cls:'plan-expirado', expirado:true};
+    return {label:'⭐ Crescimento', cls:'plan-crescimento', expirado:false};
+  }
+  if (plano === 'EMPRESARIAL') {
+    if (n.planoExpiraEm && new Date(n.planoExpiraEm) < agora) return {label:'⚠️ Empresarial expirado', cls:'plan-expirado', expirado:true};
+    return {label:'💎 Empresarial', cls:'plan-empresarial', expirado:false};
+  }
+  return {label: plano, cls:'plan-trial', expirado:false};
+}
+
+let todosNegocios = [];
+let filtroPlanoAtivo = 'TODOS';
 
 async function carregar() {
   try {
     todosNegocios = await get(API.negocios) || [];
-    renderCards(todosNegocios);
-
-    // Stats
-    document.getElementById('s-total').textContent  = todosNegocios.length;
-    const tipos = new Set(todosNegocios.map(n => n.tipo)).size;
-    document.getElementById('s-tipos').textContent  = tipos;
-    document.getElementById('s-users').textContent  = todosNegocios.filter(n => n.emailVinculado).length;
+    document.getElementById('s-total').textContent = todosNegocios.length;
+    document.getElementById('s-tipos').textContent = new Set(todosNegocios.map(n=>n.tipo)).size;
+    document.getElementById('s-users').textContent = todosNegocios.filter(n=>n.emailVinculado).length;
+    const cnt = {TRIAL:0,ESSENCIAL:0,CRESCIMENTO:0,EMPRESARIAL:0};
+    for (const n of todosNegocios) { const p=(n.plano||'TRIAL').toUpperCase(); if(cnt[p]!==undefined) cnt[p]++; }
+    document.getElementById('ps-trial').textContent = cnt.TRIAL;
+    document.getElementById('ps-essencial').textContent = cnt.ESSENCIAL;
+    document.getElementById('ps-crescimento').textContent = cnt.CRESCIMENTO;
+    document.getElementById('ps-empresarial').textContent = cnt.EMPRESARIAL;
+    aplicarFiltros();
   } catch(e) {
     toast('Erro ao carregar negócios: ' + e.message, 'err');
-    document.getElementById('biz-grid-wrap').innerHTML =
-      '<div class="empty-state">Erro ao conectar na API.</div>';
+    document.getElementById('biz-grid-wrap').innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Erro ao conectar na API.</div>';
   }
 }
 
-function filtrar() {
-  const q = document.getElementById('search-input').value.toLowerCase();
-  const filtrados = todosNegocios.filter(n =>
-    (n.nome||'').toLowerCase().includes(q) ||
-    (n.tipo||'').toLowerCase().includes(q) ||
-    (n.emailVinculado||'').toLowerCase().includes(q)
-  );
-  renderCards(filtrados);
+function filtrarPlano(plano, btn) {
+  filtroPlanoAtivo = plano;
+  document.querySelectorAll('.plan-filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.plan-stat-card').forEach(c => c.classList.remove('active'));
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const fb = document.querySelector(\`.plan-filter-btn[data-filter="${plano}"]\`);
+    if (fb) fb.classList.add('active');
+    else document.querySelector('.plan-filter-btn[data-filter="TODOS"]').classList.add('active');
+    const sc = document.getElementById('pstat-' + plano.toLowerCase());
+    if (sc) sc.classList.add('active');
+  }
+  aplicarFiltros();
+}
+
+function aplicarFiltros() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  const lista = todosNegocios.filter(n => {
+    if (q && !((n.nome||'')+' '+(n.tipo||'')+' '+(n.emailVinculado||'')).toLowerCase().includes(q)) return false;
+    if (filtroPlanoAtivo === 'TODOS') return true;
+    if (filtroPlanoAtivo === 'EXPIRADO') return infoPlan(n).expirado;
+    return (n.plano||'TRIAL').toUpperCase() === filtroPlanoAtivo;
+  });
+  renderCards(lista);
 }
 
 function renderCards(lista) {
   const wrap = document.getElementById('biz-grid-wrap');
   if (!lista.length) {
-    wrap.innerHTML = `
-      <div class="empty-big" style="grid-column:1/-1;">
-        <span class="icon">🏪</span>
-        <p>Nenhum negócio cadastrado ainda.</p>
-        <a href="admin-cadastro.html" class="btn btn-primary">+ Cadastrar Primeiro Negócio</a>
-      </div>`;
+    wrap.innerHTML = `<div class="empty-big"><span class="icon">🏪</span><p>Nenhum negócio encontrado.</p><a href="admin-cadastro.html" class="btn btn-primary">+ Cadastrar Negócio</a></div>`;
     return;
   }
-  // Usa data-* attributes para evitar quebra com nomes/e-mails que contenham aspas ou caracteres especiais
-  wrap.innerHTML = lista.map(n => `
-    <div class="biz-card"
+  wrap.innerHTML = lista.map(n => {
+    const pi = infoPlan(n);
+    const expBorder = pi.expirado ? 'border-color:#7f1d1d;' : '';
+    return `
+    <div class="biz-card" style="${expBorder}"
       data-id="${n.id}"
       data-nome="${(n.nome||'').replace(/"/g,'&quot;')}"
-      data-email="${(n.emailVinculado||'').replace(/"/g,'&quot;')}">
+      data-email="${(n.emailVinculado||'').replace(/"/g,'&quot;')}"
+      data-plano="${(n.plano||'TRIAL').toUpperCase()}"
+      data-expira="${n.planoExpiraEm||''}"
+      data-gratuito="${n.periodoGratuito||false}"
+      data-trial-expira="${n.trialExpiraEm||''}">
       <div class="biz-card-top">
-        <div class="biz-icon">${iconeTipo(n.tipo)}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="biz-icon">${iconeTipo(n.tipo)}</div>
+          <span class="plan-badge ${pi.cls}">${pi.label}</span>
+        </div>
         <div class="biz-actions">
+          <button class="btn btn-ghost btn-sm btn-plano" data-id="${n.id}" data-nome="${(n.nome||'—').replace(/"/g,'&quot;')}" title="Alterar plano" style="font-size:14px;">📋</button>
           <a href="admin-cadastro.html?id=${n.id}" class="btn btn-ghost btn-sm" title="Editar">✏️</a>
           <button class="btn btn-danger btn-sm btn-excluir" data-id="${n.id}" data-nome="${(n.nome||'—').replace(/"/g,'&quot;')}" title="Excluir">🗑</button>
         </div>
       </div>
-      <div class="biz-name">${n.nome || '—'}</div>
-      <div class="biz-tipo">${n.tipo || '—'}</div>
-      <div class="biz-email">
-        <span style="color:var(--emerald);">✉</span>
-        <span>${n.emailVinculado || 'Sem e-mail vinculado'}</span>
-      </div>
+      <div class="biz-name" style="margin-top:10px;">${n.nome||'—'}</div>
+      <div class="biz-tipo">${n.tipo||'—'}</div>
+      <div class="biz-email"><span style="color:var(--emerald);">✉</span><span>${n.emailVinculado||'Sem e-mail vinculado'}</span></div>
       <div class="biz-footer">
-        <button class="btn btn-primary btn-sm btn-entrar" data-id="${n.id}">
-          Acessar Dashboard →
-        </button>
+        <button class="btn btn-primary btn-sm btn-entrar" data-id="${n.id}">Acessar Dashboard →</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
-// Event delegation — evita onclick inline com strings escapadas
 document.getElementById('biz-grid-wrap').addEventListener('click', function(e) {
-  // Clique no botão Excluir
   const btnEx = e.target.closest('.btn-excluir');
-  if (btnEx) {
-    e.stopPropagation();
-    abrirConfirm(btnEx.dataset.id, btnEx.dataset.nome);
-    return;
-  }
-  // Clique no botão Acessar Dashboard
+  if (btnEx) { e.stopPropagation(); abrirConfirm(btnEx.dataset.id, btnEx.dataset.nome); return; }
+  const btnPl = e.target.closest('.btn-plano');
+  if (btnPl) { e.stopPropagation(); abrirModalPlano(btnPl.dataset.id, btnPl.dataset.nome); return; }
   const btnEn = e.target.closest('.btn-entrar');
-  if (btnEn) {
-    e.stopPropagation();
-    const card = btnEn.closest('.biz-card');
-    entrarNegocio(card.dataset.id, card.dataset.nome, card.dataset.email);
-    return;
-  }
-  // Clique no card inteiro (fora dos botões de ação)
+  if (btnEn) { e.stopPropagation(); const c=btnEn.closest('.biz-card'); entrarNegocio(c.dataset.id,c.dataset.nome,c.dataset.email); return; }
   const card = e.target.closest('.biz-card');
-  if (card && !e.target.closest('.biz-actions') && !e.target.closest('.biz-footer')) {
-    entrarNegocio(card.dataset.id, card.dataset.nome, card.dataset.email);
-  }
+  if (card && !e.target.closest('.biz-actions') && !e.target.closest('.biz-footer')) entrarNegocio(card.dataset.id,card.dataset.nome,card.dataset.email);
 });
 
-function entrarNegocio(id, nome, emailVinculado) {
-  setViewingBusiness(id, nome, emailVinculado);
-  window.location.href = 'cadastro.html';
-}
+function entrarNegocio(id,nome,emailVinculado) { setViewingBusiness(id,nome,emailVinculado); window.location.href='cadastro.html'; }
 
-// ── Modal de confirmação (substitui confirm() que é bloqueado em HTTPS) ──
+/* Modal exclusão */
 let _pendingDeleteId = null;
+function abrirConfirm(id,nome) { _pendingDeleteId=id; document.getElementById('confirmNome').textContent=nome||'este negócio'; document.getElementById('confirmOverlay').classList.add('show'); }
+document.getElementById('confirmCancelar').addEventListener('click',()=>{ _pendingDeleteId=null; document.getElementById('confirmOverlay').classList.remove('show'); });
+document.getElementById('confirmOverlay').addEventListener('click',function(e){ if(e.target===this){_pendingDeleteId=null;this.classList.remove('show');} });
+document.getElementById('confirmOk').addEventListener('click', async()=>{
+  const id=_pendingDeleteId; if(!id) return;
+  _pendingDeleteId=null; document.getElementById('confirmOverlay').classList.remove('show');
+  const btn=document.getElementById('confirmOk'); btn.disabled=true; btn.textContent='Excluindo…';
+  try { await del(`${API.negocios}/${id}`); toast('Negócio excluído com sucesso.'); carregar(); }
+  catch(e){ toast('Erro ao excluir: '+e.message,'err'); }
+  finally { btn.disabled=false; btn.textContent='Excluir'; }
+});
 
-function abrirConfirm(id, nome) {
-  _pendingDeleteId = id;
-  document.getElementById('confirmNome').textContent = nome || 'este negócio';
-  document.getElementById('confirmOverlay').classList.add('show');
+/* Modal plano */
+let _pendingPlanoId=null, _planoSelecionado=null;
+function abrirModalPlano(id,nome) {
+  _pendingPlanoId=id;
+  document.getElementById('planoNome').textContent=nome||'este negócio';
+  const card=document.querySelector(`.biz-card[data-id="${id}"]`);
+  selecionarPlano(card ? card.dataset.plano : 'TRIAL');
+  const expira=card && card.dataset.expira ? card.dataset.expira : '';
+  document.getElementById('inputExpira').value = expira ? expira.slice(0,16) : '';
+  document.getElementById('cbGratuito').checked = card && card.dataset.gratuito==='true';
+  document.getElementById('planoOverlay').classList.add('show');
 }
-
-document.getElementById('confirmCancelar').addEventListener('click', () => {
-  _pendingDeleteId = null;
-  document.getElementById('confirmOverlay').classList.remove('show');
-});
-
-document.getElementById('confirmOverlay').addEventListener('click', function(e) {
-  if (e.target === this) {
-    _pendingDeleteId = null;
-    this.classList.remove('show');
-  }
-});
-
-document.getElementById('confirmOk').addEventListener('click', async () => {
-  const id = _pendingDeleteId;
-  if (!id) return;
-  _pendingDeleteId = null;
-  document.getElementById('confirmOverlay').classList.remove('show');
-
-  const btn = document.getElementById('confirmOk');
-  btn.disabled = true;
-  btn.textContent = 'Excluindo…';
-
+function selecionarPlano(plano) {
+  _planoSelecionado=plano;
+  document.querySelectorAll('.plan-option').forEach(o=>o.classList.toggle('selected',o.dataset.plano===plano));
+  document.getElementById('extra-gratuito').style.display = plano==='ESSENCIAL' ? 'flex' : 'none';
+}
+document.getElementById('planoCancelar').addEventListener('click',()=>{ _pendingPlanoId=null; document.getElementById('planoOverlay').classList.remove('show'); });
+document.getElementById('planoOverlay').addEventListener('click',function(e){ if(e.target===this){_pendingPlanoId=null;this.classList.remove('show');} });
+document.getElementById('planoSalvar').addEventListener('click', async()=>{
+  if(!_pendingPlanoId||!_planoSelecionado){ toast('Selecione um plano.','err'); return; }
+  const btn=document.getElementById('planoSalvar'); btn.disabled=true; btn.textContent='Salvando…';
+  const expiraVal=document.getElementById('inputExpira').value;
+  const periodoGratuito=_planoSelecionado==='ESSENCIAL' ? document.getElementById('cbGratuito').checked : false;
   try {
-    await del(`${API.negocios}/${id}`);
-    toast('Negócio excluído com sucesso.');
-    carregar();
-  } catch(e) {
-    toast('Erro ao excluir: ' + e.message, 'err');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Excluir';
-  }
+    await patch(`${API.negocios}/${_pendingPlanoId}/plano`,{plano:_planoSelecionado,periodoGratuito,planoExpiraEm:expiraVal?expiraVal+':00':null});
+    toast(`Plano atualizado para ${_planoSelecionado}.`);
+    document.getElementById('planoOverlay').classList.remove('show');
+    _pendingPlanoId=null; carregar();
+  } catch(e){ toast('Erro ao salvar plano: '+e.message,'err'); }
+  finally { btn.disabled=false; btn.textContent='Salvar plano'; }
 });
 
 carregar();

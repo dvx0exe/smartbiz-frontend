@@ -302,7 +302,7 @@ function filtrarPlano(plano, btn) {
   if (btn) {
     btn.classList.add('active');
   } else {
-    const fb = document.querySelector(\`.plan-filter-btn[data-filter="${plano}"]\`);
+    const fb = document.querySelector(`.plan-filter-btn[data-filter="${plano}"]`);
     if (fb) fb.classList.add('active');
     else document.querySelector('.plan-filter-btn[data-filter="TODOS"]').classList.add('active');
     const sc = document.getElementById('pstat-' + plano.toLowerCase());

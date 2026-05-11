@@ -401,7 +401,7 @@ async function iniciarFluxoPix(total, vendaBody) {
     const emailPagador = document.getElementById('pdv-cliente-info').textContent
       .match(/[\w.+-]+@[\w-]+\.[\w.]+/)?.[0] || '';
 
-    const res = await post('/api/pix/criar', {
+    const res = await post(`${BASE_API}/pix/criar`, {
       valor:        total,
       emailPagador: emailPagador,
       venda:        vendaBody,
@@ -444,7 +444,7 @@ function fecharModalPix() {
 
 function cancelarPix() {
   if (_pixId) {
-    post(`/api/pix/${_pixId}/cancelar`).catch(() => {});
+    post(`${BASE_API}/pix/${_pixId}/cancelar`).catch(() => {});
     _pixId = null;
   }
   fecharModalPix();
@@ -483,7 +483,7 @@ function iniciarPollingPix() {
   _pixPolling = setInterval(async () => {
     if (!_pixId) { pararPolling(); return; }
     try {
-      const res = await get(`/api/pix/${_pixId}/status`);
+      const res = await get(`${BASE_API}/pix/${_pixId}/status`);
       if (res.status === 'PAGO') {
         pararPolling();
         clearInterval(_pixTimer);

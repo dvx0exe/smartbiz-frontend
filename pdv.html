@@ -183,6 +183,55 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ── Modal PIX ──────────────────────────────────────────── -->
+<div class="pix-overlay" id="pix-overlay">
+  <div class="pix-modal">
+    <div class="pix-logo">⚡</div>
+    <div class="pix-title">Pague com PIX</div>
+    <div class="pix-amount" id="pix-amount">R$ 0,00</div>
+
+    <!-- QR Code -->
+    <div class="pix-qr">
+      <img id="pix-qr-img" src="" alt="QR Code PIX" style="width:180px;height:180px;display:block;">
+    </div>
+
+    <!-- Timer -->
+    <div class="pix-timer">Expira em <span id="pix-countdown">05:00</span></div>
+
+    <!-- Copia e Cola -->
+    <div class="pix-copy-wrap">
+      <div class="pix-code" id="pix-code" onclick="copiarPix()" title="Clique para copiar">
+        Gerando código...
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="copiarPix()" style="flex-shrink:0;">Copiar</button>
+    </div>
+
+    <!-- Estado de aguardando / confirmado -->
+    <div id="pix-status-area">
+      <div class="pix-actions">
+        <div id="pix-aguardando" style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--text-dim);padding:6px 0;">
+          <span style="animation:spin 1s linear infinite;display:inline-block;">⏳</span>
+          Aguardando pagamento...
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="cancelarPix()" id="btn-cancelar-pix">
+          Cancelar e voltar
+        </button>
+      </div>
+    </div>
+
+    <div class="pix-info">
+      Escaneie o QR code ou copie o código PIX.<br>
+      A venda é confirmada automaticamente após o pagamento.
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform:rotate(360deg); } }
+#pix-pago { display:none; flex-direction:column; align-items:center; gap:10px; }
+</style>
+
 <script src="api.js"></script>
 <script>
 let produtos = [], carrinho = [], catSel = '';
@@ -299,41 +348,210 @@ async function buscarClientePDV() {
 
 async function finalizarVenda() {
   if (!carrinho.length) return;
-  const desc  = parseFloat(document.getElementById('pdv-desc').value)||0;
+  const desc  = parseFloat(document.getElementById('pdv-desc').value) || 0;
   const pag   = document.getElementById('pdv-pag').value;
   const cpf   = document.getElementById('pdv-cpf').value.trim();
-  const total = Math.max(0, carrinho.reduce((s,i)=>s+i.preco*i.qty,0)-desc);
+  const total = Math.max(0, carrinho.reduce((s, i) => s + i.preco * i.qty, 0) - desc);
 
+  const vendaBody = {
+    itens: carrinho.map(i => ({ produtoId: i.id, quantidade: i.qty })),
+    formaPagamento: pag,
+    clienteCpf: cpf || null,
+    desconto: desc,
+  };
+
+  // ── PIX: fluxo com QR code e confirmação real ──
+  if (pag === 'PIX') {
+    await iniciarFluxoPix(total, vendaBody);
+    return;
+  }
+
+  // ── Outros meios: registra imediatamente (comportamento original) ──
   const btn = document.getElementById('btn-vender');
-  const restore = spin(btn,'Registrando...');
+  const restore = spin(btn, 'Registrando...');
   try {
-    const body = {
-      itens: carrinho.map(i=>({produtoId:i.id, quantidade:i.qty})),
-      formaPagamento: pag,
-      clienteCpf: cpf||null,
-      desconto: desc,
-    };
-    const venda = await post(API.vendas, body);
-
-    // Ticket
-    const ticket = document.getElementById('ticket');
-    document.getElementById('ticket-body').innerHTML =
-      carrinho.map(i=>`<div class="ticket-row"><span>${i.nome} x${i.qty}</span><span>${brl(i.preco*i.qty)}</span></div>`).join('') +
-      (desc>0?`<div class="ticket-row text-dim"><span>Desconto</span><span>-${brl(desc)}</span></div>`:'') +
-      `<div class="ticket-row ticket-total text-green"><span>TOTAL</span><span>${brl(total)}</span></div>` +
-      `<div class="ticket-row text-dim" style="font-size:10px;margin-top:4px;"><span>${pag}</span><span>ID: ${venda.id.slice(-6).toUpperCase()}</span></div>`;
-    ticket.classList.add('show');
-
+    const venda = await post(API.vendas, vendaBody);
+    mostrarTicket(venda.id, total, desc, pag);
     toast(`✓ Venda de ${brl(total)} registrada!`);
-    carrinho=[];
-    document.getElementById('pdv-cpf').value='';
-    document.getElementById('pdv-desc').value='0';
-    document.getElementById('pdv-cliente-info').textContent='';
-    renderCarrinho();
-    carregarProdutos();
-    carregarVendas();
-  } catch(e) { toast('Erro: '+e.message,'err'); }
+    limparAposVenda();
+  } catch(e) { toast('Erro: ' + e.message, 'err'); }
   finally { restore(); }
+}
+
+// ── Fluxo PIX completo ─────────────────────────────────────────────────────
+
+let _pixId         = null;
+let _pixPolling    = null;
+let _pixTimer      = null;
+let _pixSegundos   = 0;
+let _pixCarrinho   = [];
+let _pixDesconto   = 0;
+let _pixPag        = 'PIX';
+
+async function iniciarFluxoPix(total, vendaBody) {
+  const btn = document.getElementById('btn-vender');
+  const restore = spin(btn, 'Gerando PIX...');
+
+  try {
+    // Guarda snapshot do carrinho antes de exibir o modal
+    _pixCarrinho = [...carrinho];
+    _pixDesconto = parseFloat(document.getElementById('pdv-desc').value) || 0;
+    _pixPag = 'PIX';
+
+    const emailPagador = document.getElementById('pdv-cliente-info').textContent
+      .match(/[\w.+-]+@[\w-]+\.[\w.]+/)?.[0] || '';
+
+    const res = await post('/api/pix/criar', {
+      valor:        total,
+      emailPagador: emailPagador,
+      venda:        vendaBody,
+    });
+
+    _pixId = res.pixId;
+
+    // Preenche o modal
+    document.getElementById('pix-amount').textContent = brl(total);
+    document.getElementById('pix-qr-img').src = 'data:image/png;base64,' + res.qrCodeBase64;
+    document.getElementById('pix-code').textContent  = res.pixCopiaECola;
+
+    // Calcula segundos até expirar
+    const expira = new Date(res.expiraEm);
+    _pixSegundos = Math.max(0, Math.round((expira - new Date()) / 1000));
+
+    // Reset UI
+    document.getElementById('pix-aguardando').style.display = 'flex';
+    document.getElementById('btn-cancelar-pix').disabled = false;
+
+    abrirModalPix();
+    iniciarTimerPix();
+    iniciarPollingPix();
+
+  } catch(e) {
+    toast('Erro ao gerar PIX: ' + e.message, 'err');
+  } finally {
+    restore();
+  }
+}
+
+function abrirModalPix() {
+  document.getElementById('pix-overlay').classList.add('show');
+}
+
+function fecharModalPix() {
+  document.getElementById('pix-overlay').classList.remove('show');
+  pararPolling();
+}
+
+function cancelarPix() {
+  if (_pixId) {
+    post(`/api/pix/${_pixId}/cancelar`).catch(() => {});
+    _pixId = null;
+  }
+  fecharModalPix();
+}
+
+// Timer regressivo
+function iniciarTimerPix() {
+  clearInterval(_pixTimer);
+  atualizarCountdown();
+  _pixTimer = setInterval(() => {
+    _pixSegundos--;
+    atualizarCountdown();
+    if (_pixSegundos <= 0) {
+      clearInterval(_pixTimer);
+      if (_pixId) {
+        toast('PIX expirado. Tente novamente.', 'err');
+        fecharModalPix();
+      }
+    }
+  }, 1000);
+}
+
+function atualizarCountdown() {
+  const m = String(Math.floor(_pixSegundos / 60)).padStart(2, '0');
+  const s = String(_pixSegundos % 60).padStart(2, '0');
+  const el = document.getElementById('pix-countdown');
+  if (el) {
+    el.textContent = `${m}:${s}`;
+    el.style.color = _pixSegundos < 60 ? '#f87171' : 'var(--emerald)';
+  }
+}
+
+// Polling a cada 3 segundos
+function iniciarPollingPix() {
+  pararPolling();
+  _pixPolling = setInterval(async () => {
+    if (!_pixId) { pararPolling(); return; }
+    try {
+      const res = await get(`/api/pix/${_pixId}/status`);
+      if (res.status === 'PAGO') {
+        pararPolling();
+        clearInterval(_pixTimer);
+        await pixConfirmado(res.vendaId);
+      } else if (res.status === 'EXPIRADO') {
+        pararPolling();
+        clearInterval(_pixTimer);
+        toast('PIX expirado. Tente novamente.', 'err');
+        fecharModalPix();
+      }
+    } catch { /* rede instável — tenta de novo */ }
+  }, 3000);
+}
+
+function pararPolling() {
+  clearInterval(_pixPolling);
+  _pixPolling = null;
+}
+
+// Pagamento confirmado — exibe sucesso e fecha modal
+async function pixConfirmado(vendaId) {
+  const total = _pixCarrinho.reduce((s, i) => s + i.preco * i.qty, 0) - _pixDesconto;
+
+  // Mostra ✓ no modal por 2 segundos antes de fechar
+  document.getElementById('pix-aguardando').innerHTML =
+    '<span style="color:var(--emerald);font-size:22px;">✅</span>' +
+    '<span style="color:var(--emerald);font-size:13px;font-weight:600;">Pagamento recebido!</span>';
+  document.getElementById('btn-cancelar-pix').disabled = true;
+
+  await new Promise(r => setTimeout(r, 2000));
+  fecharModalPix();
+
+  mostrarTicket(vendaId, total, _pixDesconto, 'PIX');
+  toast(`✓ PIX de ${brl(total)} recebido e venda registrada!`);
+  limparAposVenda();
+  _pixId = null;
+}
+
+// ── Copia código PIX ───────────────────────────────────────────────────────
+function copiarPix() {
+  const codigo = document.getElementById('pix-code').textContent;
+  if (!codigo || codigo === 'Gerando código...') return;
+  navigator.clipboard.writeText(codigo)
+    .then(() => toast('✓ Código PIX copiado!'))
+    .catch(() => toast('Erro ao copiar.', 'err'));
+}
+
+// ── Ticket de venda ────────────────────────────────────────────────────────
+function mostrarTicket(vendaId, total, desc, pag) {
+  const snap = _pixCarrinho.length ? _pixCarrinho : carrinho;
+  const ticket = document.getElementById('ticket');
+  document.getElementById('ticket-body').innerHTML =
+    snap.map(i => `<div class="ticket-row"><span>${i.nome} x${i.qty}</span><span>${brl(i.preco * i.qty)}</span></div>`).join('') +
+    (desc > 0 ? `<div class="ticket-row text-dim"><span>Desconto</span><span>-${brl(desc)}</span></div>` : '') +
+    `<div class="ticket-row ticket-total text-green"><span>TOTAL</span><span>${brl(total)}</span></div>` +
+    `<div class="ticket-row text-dim" style="font-size:10px;margin-top:4px;"><span>${pag}</span><span>ID: ${vendaId.slice(-6).toUpperCase()}</span></div>`;
+  ticket.classList.add('show');
+}
+
+function limparAposVenda() {
+  carrinho = [];
+  _pixCarrinho = [];
+  document.getElementById('pdv-cpf').value = '';
+  document.getElementById('pdv-desc').value = '0';
+  document.getElementById('pdv-cliente-info').textContent = '';
+  renderCarrinho();
+  carregarProdutos();
+  carregarVendas();
 }
 
 async function cancelarVenda(id) {

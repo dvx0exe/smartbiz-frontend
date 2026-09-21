@@ -360,15 +360,29 @@ function renderQR(containerId, text) {
   new QRCode(el, { text, width:160, height:160, correctLevel:QRCode.CorrectLevel.M });
 }
 
-/* ── CONFIG PIX ── */
-const getConfig = () => ({
-  chave:  localStorage.getItem('sb_pix_chave')||'',
-  tipo:   localStorage.getItem('sb_pix_tipo')||'cpf',
-  nome:   localStorage.getItem('sb_pix_nome')||'',
-  cidade: localStorage.getItem('sb_pix_cidade')||'UBERLANDIA',
-});
+/* ── CONFIG PIX ──
+   Persistida no backend, no próprio documento Negocio (campo pixEstatico),
+   igual ao padrão já usado para Mercado Pago nesta página (mp-status/mp-credencial).
+   Antes ficava em localStorage sem escopo por conta — por isso a chave de um
+   lojista aparecia para qualquer outra conta logada no mesmo navegador. */
+let _pixConfigCache = { chave:'', tipo:'cpf', nome:'', cidade:'UBERLANDIA' };
+const getConfig = () => _pixConfigCache;
 
-function carregarConfigUI() {
+async function carregarConfigUI() {
+  const bizId = window.getBusinessId();
+  if (bizId) {
+    try {
+      const c = await get(`${API.negocios}/${bizId}/pix-estatico`);
+      _pixConfigCache = {
+        chave:  c.chave  || '',
+        tipo:   c.tipo   || 'cpf',
+        nome:   c.nome   || '',
+        cidade: c.cidade || 'UBERLANDIA'
+      };
+    } catch (e) {
+      _pixConfigCache = { chave:'', tipo:'cpf', nome:'', cidade:'UBERLANDIA' };
+    }
+  }
   const c = getConfig();
   document.getElementById('cfg-chave').value  = c.chave;
   document.getElementById('cfg-tipo').value   = c.tipo;
@@ -391,18 +405,21 @@ function carregarConfigUI() {
   }
 }
 
-function salvarConfig() {
+async function salvarConfig() {
   const chave  = document.getElementById('cfg-chave').value.trim();
   const tipo   = document.getElementById('cfg-tipo').value;
   const nome   = document.getElementById('cfg-nome').value.trim();
   const cidade = document.getElementById('cfg-cidade').value.trim()||'UBERLANDIA';
   if(!chave||!nome){ toast('Chave PIX e nome são obrigatórios.','err'); return; }
-  localStorage.setItem('sb_pix_chave', chave);
-  localStorage.setItem('sb_pix_tipo',  tipo);
-  localStorage.setItem('sb_pix_nome',  nome);
-  localStorage.setItem('sb_pix_cidade',cidade);
-  toast('✓ Configuração PIX salva!');
-  carregarConfigUI();
+  const bizId = window.getBusinessId();
+  if(!bizId){ toast('Negócio não identificado.','err'); return; }
+  try {
+    await post(`${API.negocios}/${bizId}/pix-estatico`, { chave, tipo, nome, cidade });
+    toast('✓ Configuração PIX salva!');
+    carregarConfigUI();
+  } catch(e) {
+    toast('Falha ao salvar: ' + (e.message||''), 'err');
+  }
 }
 
 function testarQR() {

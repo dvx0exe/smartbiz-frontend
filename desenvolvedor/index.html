@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0B0716;--glow:rgba(124,92,255,.3);--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.1);--ink:#EEEAFB;--mute:#A79FC2;--acc:#8B6CFF;--acc2:#B9A2FF;--tag:rgba(139,108,255,.18);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#F5F2FF;--glow:rgba(124,92,255,.18);--card:rgba(255,255,255,.8);--line:rgba(60,40,120,.15);--ink:#1E1638;--mute:#5A5075;--acc:#5B3FE0;--acc2:#4A2FCB;--tag:rgba(91,63,224,.1)}}
-:root[data-theme="light"]{--bg:#F5F2FF;--glow:rgba(124,92,255,.18);--card:rgba(255,255,255,.8);--line:rgba(60,40,120,.15);--ink:#1E1638;--mute:#5A5075;--acc:#5B3FE0;--acc2:#4A2FCB;--tag:rgba(91,63,224,.1)}
+:root{--bg:#14070A;--glow:rgba(229,36,59,.3);--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.1);--ink:#FCEEEE;--mute:#C9A3A8;--acc:#E5243B;--acc2:#FF6B7A;--tag:rgba(229,36,59,.18);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#FFF3F1;--glow:rgba(229,36,59,.16);--card:rgba(255,255,255,.8);--line:rgba(120,20,30,.15);--ink:#2A0F12;--mute:#7A4F55;--acc:#C8102E;--acc2:#A80F26;--tag:rgba(200,16,46,.1)}}
+:root[data-theme="light"]{--bg:#FFF3F1;--glow:rgba(229,36,59,.16);--card:rgba(255,255,255,.8);--line:rgba(120,20,30,.15);--ink:#2A0F12;--mute:#7A4F55;--acc:#C8102E;--acc2:#A80F26;--tag:rgba(200,16,46,.1)}
 html{scroll-padding-top:calc(4.5rem + env(safe-area-inset-top,0px));scroll-behavior:smooth}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);background:radial-gradient(60rem 36rem at 50% -8%,var(--glow),transparent 70%),var(--bg);color:var(--ink);font:400 1rem/1.6 'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif}
@@ -38,7 +38,7 @@ h1{font-size:clamp(2.4rem,9vw,4.4rem);line-height:1.05;font-weight:700;letter-sp
 .lead{color:var(--mute);max-width:34rem;margin:0 0 1.6rem}
 .btns{display:flex;flex-wrap:wrap;gap:.7rem}
 .btn{display:inline-block;padding:.65rem 1.3rem;border-radius:12px;border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:500;font-size:.92rem;background:var(--card)}
-.btn.pri{background:linear-gradient(135deg,#6D4AF0,#8B5CF6);border-color:transparent;color:#fff}
+.btn.pri{background:linear-gradient(135deg,#B3122A,#D91F36);border-color:transparent;color:#fff}
 section{padding:4.5rem clamp(20px,6vw,72px) 1rem;max-width:1080px;margin:0 auto}
 h2{font-size:clamp(1.7rem,5vw,2.3rem);text-align:center;color:var(--acc2);margin:0;font-weight:600}
 .sub{text-align:center;color:var(--mute);margin:.5rem auto 2rem;max-width:44ch;font-size:.95rem}
@@ -83,7 +83,7 @@ footer{text-align:center;color:var(--mute);font-size:.8rem;padding:3rem 1rem 2re
 </nav>
 
 <header class="hero" id="inicio">
-  <svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A2FF"/><stop offset="1" stop-color="#6D4AF0"/></linearGradient></defs><path id="sp" pathLength="1" fill="none" stroke="url(#g)" stroke-width="1.4" stroke-linecap="round"/></svg>
+  <svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B7A"/><stop offset="1" stop-color="#B3122A"/></linearGradient></defs><path id="sp" pathLength="1" fill="none" stroke="url(#g)" stroke-width="1.4" stroke-linecap="round"/></svg>
   <div>
     <h1>Davi Nascimento Dias</h1>
     <p class="type"><span id="t">Backend Java com Spring Boot</span><i class="caret" aria-hidden="true"></i></p>

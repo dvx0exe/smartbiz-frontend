@@ -14,6 +14,9 @@
 .pag-method-name{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;}
 .pag-method.selected .pag-method-name{color:var(--emerald);}
 .pix-qr-wrapper{background:#fff;border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;margin:14px 0;gap:10px;}
+/* A caixa do QR é branca de propósito (o leitor do banco precisa de fundo claro); no tema escuro os botões dentro dela precisam de texto escuro */
+[data-theme="dark"] .pix-qr-wrapper .btn-ghost{color:#3d5c47;border-color:#c8dace;}
+[data-theme="dark"] .pix-qr-wrapper .btn-ghost:hover{background:#f0f5f1;color:#1a2e20;border-color:#7a9882;}
 .pix-emv-box{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);word-break:break-all;line-height:1.6;width:100%;}
 .confirm-box{background:rgba(0,200,150,.05);border:1px solid var(--border);border-radius:4px;padding:18px;display:none;}
 .confirm-box.show{display:block;animation:fadein .3s ease;}

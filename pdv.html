@@ -227,6 +227,30 @@
   </div>
 </div>
 
+<!-- ── Modal Cartão (maquininha Point) ───────────────────── -->
+<div class="pix-overlay" id="card-overlay">
+  <div class="pix-modal">
+    <div class="pix-logo">💳</div>
+    <div class="pix-title">Pagamento na maquininha</div>
+    <div class="pix-amount" id="card-amount">R$ 0,00</div>
+
+    <div id="card-status" style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;color:var(--text-dim);padding:10px 0;line-height:1.4;">
+      <span id="card-status-icon" style="animation:spin 1s linear infinite;display:inline-block;">⏳</span>
+      <span id="card-status-text">Enviando para a maquininha...</span>
+    </div>
+
+    <div class="pix-actions">
+      <button class="btn btn-ghost btn-sm" onclick="cancelarCartao()" id="btn-cancelar-card">Cancelar cobrança</button>
+      <button class="btn btn-primary btn-sm" onclick="fecharModalCartao()" id="btn-fechar-card" style="display:none;">Fechar</button>
+    </div>
+
+    <div class="pix-info" id="card-info">
+      O cliente paga na maquininha.<br>
+      A venda é registrada automaticamente quando o Mercado Pago confirmar.
+    </div>
+  </div>
+</div>
+
 <style>
 @keyframes spin { to { transform:rotate(360deg); } }
 #pix-pago { display:none; flex-direction:column; align-items:center; gap:10px; }
@@ -360,13 +384,25 @@ async function finalizarVenda() {
     desconto: desc,
   };
 
-  // ── PIX: fluxo com QR code e confirmação real ──
   if (pag === 'PIX') {
     await iniciarFluxoPix(total, vendaBody);
     return;
   }
 
-  // ── Outros meios: registra imediatamente (comportamento original) ──
+  if (pag === 'Cartão de Débito' || pag === 'Cartão de Crédito') {
+    let usaPoint;
+    try {
+      usaPoint = await pointConfigurado();
+    } catch (e) {
+      toast('Não foi possível verificar a maquininha: ' + msgErro(e), 'err');
+      return;
+    }
+    if (usaPoint) {
+      await iniciarFluxoCartao(vendaBody, pag);
+      return;
+    }
+  }
+
   const btn = document.getElementById('btn-vender');
   const restore = spin(btn, 'Registrando...');
   try {
@@ -378,7 +414,6 @@ async function finalizarVenda() {
   finally { restore(); }
 }
 
-// ── Fluxo PIX completo ─────────────────────────────────────────────────────
 
 let _pixId         = null;
 let _pixPolling    = null;
@@ -393,7 +428,6 @@ async function iniciarFluxoPix(total, vendaBody) {
   const restore = spin(btn, 'Gerando PIX...');
 
   try {
-    // Guarda snapshot do carrinho antes de exibir o modal
     _pixCarrinho = [...carrinho];
     _pixDesconto = parseFloat(document.getElementById('pdv-desc').value) || 0;
     _pixPag = 'PIX';
@@ -409,16 +443,13 @@ async function iniciarFluxoPix(total, vendaBody) {
 
     _pixId = res.pixId;
 
-    // Preenche o modal
     document.getElementById('pix-amount').textContent = brl(total);
     document.getElementById('pix-qr-img').src = 'data:image/png;base64,' + res.qrCodeBase64;
     document.getElementById('pix-code').textContent  = res.pixCopiaECola;
 
-    // Calcula segundos até expirar
     const expira = new Date(res.expiraEm);
     _pixSegundos = Math.max(0, Math.round((expira - new Date()) / 1000));
 
-    // Reset UI
     document.getElementById('pix-aguardando').style.display = 'flex';
     document.getElementById('btn-cancelar-pix').disabled = false;
 
@@ -450,7 +481,6 @@ function cancelarPix() {
   fecharModalPix();
 }
 
-// Timer regressivo
 function iniciarTimerPix() {
   clearInterval(_pixTimer);
   atualizarCountdown();
@@ -477,7 +507,6 @@ function atualizarCountdown() {
   }
 }
 
-// Polling a cada 3 segundos
 function iniciarPollingPix() {
   pararPolling();
   _pixPolling = setInterval(async () => {
@@ -494,7 +523,7 @@ function iniciarPollingPix() {
         toast('PIX expirado. Tente novamente.', 'err');
         fecharModalPix();
       }
-    } catch { /* rede instável — tenta de novo */ }
+    } catch {}
   }, 3000);
 }
 
@@ -503,11 +532,9 @@ function pararPolling() {
   _pixPolling = null;
 }
 
-// Pagamento confirmado — exibe sucesso e fecha modal
 async function pixConfirmado(vendaId) {
   const total = _pixCarrinho.reduce((s, i) => s + i.preco * i.qty, 0) - _pixDesconto;
 
-  // Mostra ✓ no modal por 2 segundos antes de fechar
   document.getElementById('pix-aguardando').innerHTML =
     '<span style="color:var(--emerald);font-size:22px;">✅</span>' +
     '<span style="color:var(--emerald);font-size:13px;font-weight:600;">Pagamento recebido!</span>';
@@ -520,6 +547,168 @@ async function pixConfirmado(vendaId) {
   toast(`✓ PIX de ${brl(total)} recebido e venda registrada!`);
   limparAposVenda();
   _pixId = null;
+}
+
+
+let _pointCfg      = null;
+let _cardId        = null;   
+let _cardSnapshot  = [];
+let _cardDesc      = 0;
+let _cardPag       = '';
+let _cardValor     = 0;
+let _cardAviso     = false;
+
+function msgErro(e) {
+  try { const j = JSON.parse(e.message); return j.erro || j.message || e.message; }
+  catch { return (e && e.message) || 'erro desconhecido'; }
+}
+
+async function pointConfigurado() {
+  if (_pointCfg === null) {
+    const r = await get(`${BASE_API}/point/config`);
+    _pointCfg = !!(r && r.configurado);
+  }
+  return _pointCfg;
+}
+
+async function iniciarFluxoCartao(vendaBody, pag) {
+  const btn = document.getElementById('btn-vender');
+  const restore = spin(btn, 'Enviando à maquininha...');
+  try {
+    _cardSnapshot = [...carrinho];
+    _cardDesc     = parseFloat(document.getElementById('pdv-desc').value) || 0;
+    _cardPag      = pag;
+    _cardAviso    = false;
+
+    const res = await post(`${BASE_API}/point/criar`, vendaBody);
+    _cardId    = res.pointId;
+    _cardValor = res.valor;
+
+    document.getElementById('card-amount').textContent = brl(res.valor);
+    setCardStatus('⏳', 'Aguardando o cliente pagar na maquininha...', true);
+    document.getElementById('btn-cancelar-card').disabled = false;
+    document.getElementById('btn-cancelar-card').style.display = '';
+    document.getElementById('btn-fechar-card').style.display = 'none';
+    document.getElementById('card-overlay').classList.add('show');
+    iniciarPollingCartao();
+  } catch (e) {
+    toast('Erro ao enviar à maquininha: ' + msgErro(e), 'err');
+  } finally {
+    restore();
+  }
+}
+
+function setCardStatus(icone, texto, girando) {
+  const i = document.getElementById('card-status-icon');
+  i.textContent = icone;
+  i.style.animation = girando ? 'spin 1s linear infinite' : 'none';
+  document.getElementById('card-status-text').textContent = texto;
+}
+
+function iniciarPollingCartao() {
+  pararPollingCartao();
+  const tick = async () => {
+    if (!_cardId) return;
+    try {
+      const r = await get(`${BASE_API}/point/${_cardId}/status`);
+      if (!_cardId || !r) { _cardPolling = setTimeout(tick, 2500); return; }
+
+      switch (r.status) {
+        case 'PAGO':            await cartaoConfirmado(r.vendaId); return;
+        case 'PAGO_ERRO_VENDA': cartaoPagoSemVenda(r.erro); return;
+        case 'FALHOU':          cartaoEncerrado('❌', 'Pagamento recusado ou falhou na maquininha. Tente novamente.'); return;
+        case 'CANCELADO':       cartaoEncerrado('🚫', 'Cobrança cancelada.'); return;
+        case 'EXPIRADO':        cartaoEncerrado('⌛', 'A cobrança expirou. Tente novamente.'); return;
+        default:
+          if (_cardAviso) { /* mantém a instrução fixada na tela */ }
+          else if (r.statusMp === 'at_terminal')      setCardStatus('💳', 'Cliente pagando na maquininha...', true);
+          else if (r.statusMp === 'action_required') setCardStatus('⚠️', 'Verifique a maquininha — ela pede uma ação.', false);
+          else                                    setCardStatus('⏳', 'Aguardando o cliente pagar na maquininha...', true);
+      }
+    } catch { /* rede instável — tenta de novo */ }
+    _cardPolling = setTimeout(tick, 2500);
+  };
+  _cardPolling = setTimeout(tick, 1500);
+}
+
+function pararPollingCartao() {
+  clearTimeout(_cardPolling);
+  _cardPolling = null;
+}
+
+async function cartaoConfirmado(vendaId) {
+  pararPollingCartao();
+  setCardStatus('✅', 'Pagamento aprovado! Venda registrada.', false);
+  document.getElementById('btn-cancelar-card').disabled = true;
+
+  await new Promise(r => setTimeout(r, 1500));
+  fecharModalCartao();
+
+  _pixCarrinho = _cardSnapshot;         
+  mostrarTicket(vendaId, _cardValor, _cardDesc, _cardPag);
+  toast(`✓ Cartão de ${brl(_cardValor)} aprovado e venda registrada!`);
+  limparAposVenda();
+  _cardId = null;
+}
+
+function cartaoPagoSemVenda(erro) {
+  pararPollingCartao();
+  _cardId = null;
+  const itens = _cardSnapshot.map(i => `${i.nome} x${i.qty}`).join(', ');
+
+  setCardStatus('⚠️', 'O cartão foi APROVADO, mas a venda NÃO foi registrada.', false);
+  const info = document.getElementById('card-info');
+  info.textContent = '';
+  const forte = document.createElement('strong');
+  forte.style.color = '#f87171';
+  forte.textContent = erro || 'Erro ao registrar a venda.';
+  info.append(
+    forte, document.createElement('br'),
+    'Itens: ' + itens, document.createElement('br'),
+    'Não cobre o cliente de novo. Registre a venda manualmente ou estorne o pagamento no app do Mercado Pago.'
+  );
+  document.getElementById('btn-cancelar-card').style.display = 'none';
+  document.getElementById('btn-fechar-card').style.display = '';
+
+  carrinho = [];
+  renderCarrinho();
+  carregarProdutos();
+  carregarVendas();
+}
+
+function cartaoEncerrado(icone, texto) {
+  pararPollingCartao();
+  _cardId = null;
+  setCardStatus(icone, texto, false);
+  document.getElementById('btn-cancelar-card').style.display = 'none';
+  document.getElementById('btn-fechar-card').style.display = '';
+}
+
+async function cancelarCartao() {
+  if (!_cardId) { fecharModalCartao(); return; }
+  const btn = document.getElementById('btn-cancelar-card');
+  btn.disabled = true;
+  try {
+    const r = await post(`${BASE_API}/point/${_cardId}/cancelar`);
+    if (r.status === 'PAGO')            { await cartaoConfirmado(r.vendaId); return; }   // pagou no último instante
+    if (r.status === 'PAGO_ERRO_VENDA') { cartaoPagoSemVenda(r.erro); return; }
+    if (r.cancelado) { cartaoEncerrado('🚫', 'Cobrança cancelada.'); toast('Cobrança cancelada.'); return; }
+
+    // Já está na maquininha: cancelar lá. O polling continua e fecha a tela quando o MP avisar.
+    _cardAviso = true;
+    setCardStatus('⚠️', r.mensagem || 'Cancele na própria maquininha.', false);
+    btn.disabled = false;
+  } catch (e) {
+    toast('Erro ao cancelar: ' + msgErro(e), 'err');
+    btn.disabled = false;
+  }
+}
+
+function fecharModalCartao() {
+  pararPollingCartao();
+  document.getElementById('card-overlay').classList.remove('show');
+  document.getElementById('card-info').innerHTML =
+    'O cliente paga na maquininha.<br>A venda é registrada automaticamente quando o Mercado Pago confirmar.';
 }
 
 // ── Copia código PIX ───────────────────────────────────────────────────────

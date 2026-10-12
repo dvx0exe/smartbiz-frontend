@@ -55,7 +55,9 @@
     background:var(--surface2);border:1px solid var(--border);border-radius:6px;
     padding:22px 10px 18px;text-align:center;cursor:pointer;
     transition:all .15s;position:relative;
+    display:block;color:inherit;text-decoration:none;
   }
+  .plan:focus-visible{outline:2px solid var(--emerald);outline-offset:2px;}
   .plan:hover{border-color:rgba(0,200,150,.4);background:rgba(0,200,150,.04);transform:translateY(-2px);}
   .plan.popular{border-color:var(--emerald);background:rgba(0,200,150,.05);}
   .plan.popular::before{
@@ -106,27 +108,27 @@
   <p class="plans-label">Escolha seu plano</p>
 
   <div class="plans">
-    <div class="plan" onclick="window.open('https://smartbiz.net.br/#planos','_blank')">
+    <a class="plan" href="mailto:suporte.smartbiz@gmail.com?subject=Interesse%20no%20plano%20B%C3%A1sico%20-%20SmartBiz&body=Ol%C3%A1%2C%20tenho%20interesse%20no%20plano%20B%C3%A1sico%20do%20SmartBiz.">
       <div class="plan-nome">Básico</div>
       <div class="plan-preco">R$49<small>/mês</small></div>
       <ul class="plan-features">
         <li>1 usuário</li><li>PDV + Estoque</li><li>Fluxo de Caixa</li>
       </ul>
-    </div>
-    <div class="plan popular" onclick="window.open('https://smartbiz.net.br/#planos','_blank')">
+    </a>
+    <a class="plan popular" href="mailto:suporte.smartbiz@gmail.com?subject=Interesse%20no%20plano%20Profissional%20-%20SmartBiz&body=Ol%C3%A1%2C%20tenho%20interesse%20no%20plano%20Profissional%20do%20SmartBiz.">
       <div class="plan-nome">Profissional</div>
       <div class="plan-preco">R$97<small>/mês</small></div>
       <ul class="plan-features">
         <li>3 usuários</li><li>IA Insights</li><li>Clientes &amp; NF-e</li>
       </ul>
-    </div>
-    <div class="plan" onclick="window.open('https://smartbiz.net.br/#planos','_blank')">
+    </a>
+    <a class="plan" href="mailto:suporte.smartbiz@gmail.com?subject=Interesse%20no%20plano%20Empresarial%20-%20SmartBiz&body=Ol%C3%A1%2C%20tenho%20interesse%20no%20plano%20Empresarial%20do%20SmartBiz.">
       <div class="plan-nome">Empresarial</div>
       <div class="plan-preco">R$197<small>/mês</small></div>
       <ul class="plan-features">
         <li>Ilimitado</li><li>Relatórios</li><li>Suporte Prioritário</li>
       </ul>
-    </div>
+    </a>
   </div>
 
   <a class="btn-upgrade" href="https://smartbiz.net.br/#planos" target="_blank">

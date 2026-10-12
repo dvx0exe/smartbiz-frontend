@@ -14,7 +14,6 @@
 .pag-method-name{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;}
 .pag-method.selected .pag-method-name{color:var(--emerald);}
 .pix-qr-wrapper{background:#fff;border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;margin:14px 0;gap:10px;}
-/* A caixa do QR é branca de propósito (o leitor do banco precisa de fundo claro); no tema escuro os botões dentro dela precisam de texto escuro */
 [data-theme="dark"] .pix-qr-wrapper .btn-ghost{color:#3d5c47;border-color:#c8dace;}
 [data-theme="dark"] .pix-qr-wrapper .btn-ghost:hover{background:#f0f5f1;color:#1a2e20;border-color:#7a9882;}
 .pix-emv-box{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);word-break:break-all;line-height:1.6;width:100%;}
@@ -199,6 +198,30 @@
           <div style="display:flex;gap:8px;margin-top:4px;">
             <button class="btn btn-primary" onclick="salvarMpCredencial()">💾 Salvar conexão</button>
             <button class="btn btn-ghost" id="mp-remove-btn" onclick="removerMpCredencial()" style="display:none;">✕ Desconectar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Maquininha Mercado Pago Point — cartão com confirmação automática no PDV -->
+      <div class="panel" style="margin-bottom:18px;">
+        <div class="panel-header">💳 Maquininha Point (cartão no PDV)</div>
+        <div class="panel-body">
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.7;">
+            Vinculada a uma maquininha <strong>Mercado Pago Point</strong>, as vendas em cartão (débito/crédito) no PDV
+            são enviadas a ela e a venda é registrada sozinha quando o pagamento for aprovado.
+            Exige o Mercado Pago conectado acima e a maquininha em <strong>modo PDV</strong>.
+            Sem vínculo, o PDV continua registrando cartão manualmente.
+          </div>
+          <div id="point-status-badge" class="pix-config-badge miss">● Maquininha não vinculada</div>
+          <div class="form-group">
+            <label class="form-label">Maquininha</label>
+            <select class="form-select" id="point-terminal">
+              <option value="">— clique em “Buscar maquininhas” —</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+            <button class="btn btn-ghost" onclick="buscarTerminais()">🔎 Buscar maquininhas</button>
+            <button class="btn btn-primary" onclick="salvarTerminal()">💾 Vincular</button>
           </div>
         </div>
       </div>
@@ -646,6 +669,61 @@ async function removerMpCredencial(){
   }
 }
 
+/* ── Maquininha Point (cartão no PDV) ── */
+function msgErroApi(e){
+  try{ const j = JSON.parse(e.message); return j.erro || j.message || e.message; }
+  catch{ return (e && e.message) || 'erro desconhecido'; }
+}
+
+async function carregarPointConfig(){
+  try{
+    const c = await get(`${BASE_API}/point/config`);
+    const badge = document.getElementById('point-status-badge');
+    if(c && c.configurado){
+      badge.className = 'pix-config-badge ok';
+      badge.textContent = '● Vinculada · ' + c.terminalId;
+    }else{
+      badge.className = 'pix-config-badge miss';
+      badge.textContent = '● Maquininha não vinculada';
+    }
+  }catch(e){ /* silencioso, como no status do MP */ }
+}
+
+async function buscarTerminais(){
+  const sel = document.getElementById('point-terminal');
+  try{
+    const lista = await get(`${BASE_API}/point/terminais`);
+    sel.innerHTML = '';
+    if(!lista || !lista.length){
+      sel.appendChild(new Option('Nenhuma maquininha encontrada nesta conta', ''));
+      toast('Nenhuma maquininha Point na conta Mercado Pago.','err');
+      return;
+    }
+    lista.forEach(t => {
+      const o = new Option(`${t.id} · modo ${t.operatingMode || '?'}`, t.id);
+      o.dataset.mode = t.operatingMode || '';
+      sel.appendChild(o);
+    });
+  }catch(e){
+    toast('Falha ao buscar: ' + msgErroApi(e), 'err');
+  }
+}
+
+async function salvarTerminal(){
+  const sel = document.getElementById('point-terminal');
+  const terminalId = sel.value;
+  if(!terminalId){ toast('Busque e selecione uma maquininha.','err'); return; }
+  const modo = sel.selectedOptions[0] && sel.selectedOptions[0].dataset.mode;
+  if(modo !== 'PDV' && !confirm('Esta maquininha não está em modo PDV, então não receberá cobranças do sistema. Vincular mesmo assim?')) return;
+  try{
+    await post(`${BASE_API}/point/terminal`, { terminalId });
+    toast('Maquininha vinculada!','ok');
+    carregarPointConfig();
+  }catch(e){
+    toast('Falha ao vincular: ' + msgErroApi(e), 'err');
+  }
+}
+
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded',()=>{
   maskCpf(document.getElementById('p-cpf'));
@@ -654,6 +732,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   selPag('pix');
   renderTaxas(0);
   carregarMpStatus();
+  carregarPointConfig();
 });
 </script>
 </body>

@@ -33,6 +33,7 @@
     <div class="topbar-title"><span class="page-icon">📦</span>Controle de Estoque</div>
     <div class="topbar-right">
       <button class="btn btn-sm btn-outline" onclick="analisarIA()">🤖 Análise IA</button>
+      <button class="btn btn-sm btn-outline" onclick="openImp()">⬆ Importar SKUs</button>
       <button class="btn btn-sm btn-primary" onclick="openModal()">+ Novo Produto</button>
     </div>
   </div>
@@ -43,6 +44,18 @@
       <div class="stat-card"><div class="stat-label">Em alerta</div><div class="stat-value yellow" id="st-alerta">—</div><div class="stat-delta">abaixo do mínimo</div></div>
       <div class="stat-card"><div class="stat-label">Sem estoque</div><div class="stat-value red" id="st-zero">—</div></div>
       <div class="stat-card"><div class="stat-label">Valor em estoque</div><div class="stat-value green" id="st-valor">—</div><div class="stat-delta">a preço de custo</div></div>
+    </div>
+
+    <div class="panel" id="vazio-box" style="display:none;">
+      <div class="panel-body" style="text-align:center;padding:32px 20px;">
+        <div style="font-size:30px;margin-bottom:8px;">📦</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;margin-bottom:6px;">Importe os SKUs que a loja pretende vender</div>
+        <p style="font-size:13px;color:var(--text-mid);max-width:460px;margin:0 auto 18px;line-height:1.6;">Suba uma planilha (CSV) com o seu catálogo e comece a vender no PDV sem cadastrar produto por produto.</p>
+        <div class="gap-8" style="justify-content:center;">
+          <button class="btn btn-primary" onclick="openImp()">⬆ Importar SKUs</button>
+          <button class="btn btn-ghost" onclick="baixarModelo()">⬇ Baixar modelo</button>
+        </div>
+      </div>
     </div>
 
     <div id="ia-box" class="ia-box" style="margin-bottom:20px;display:none;">
@@ -109,6 +122,32 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modal-imp">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-title">Importar SKUs</div>
+    <p style="font-size:13px;color:var(--text-mid);line-height:1.6;margin-bottom:14px;">
+      Importe os SKUs que a loja pretende vender a partir de um arquivo <strong>.csv</strong>
+      (no Excel: <em>Salvar como → CSV</em>). Colunas obrigatórias:
+      <span class="text-mono">codigo</span>, <span class="text-mono">nome</span> e <span class="text-mono">venda</span>.
+      Opcionais: <span class="text-mono">categoria, unidade, quantidade, minimo, custo, fornecedor</span>.
+      SKUs que já existem na loja são ignorados — nada é sobrescrito.
+    </p>
+    <p style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;">
+      Dica: formate a coluna <span class="text-mono">codigo</span> como <strong>Texto</strong> no Excel, senão códigos longos viram notação científica e zeros à esquerda somem.
+    </p>
+    <div class="gap-8" style="margin-bottom:14px;">
+      <button class="btn btn-sm btn-ghost" onclick="baixarModelo()">⬇ Baixar modelo</button>
+      <input class="form-input" type="file" id="imp-file" accept=".csv,text/csv" onchange="lerArquivoImp(this.files[0])">
+    </div>
+    <div id="imp-resumo" style="font-size:12px;margin-bottom:10px;"></div>
+    <div class="table-wrap" id="imp-preview" style="max-height:240px;overflow:auto;"></div>
+    <div class="gap-8" style="justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeImp()">Cancelar</button>
+      <button class="btn btn-primary" id="imp-confirmar" onclick="confirmarImportacao()" disabled>Importar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-mov">
   <div class="modal">
     <div class="modal-title">Movimentar Estoque</div>
@@ -136,8 +175,9 @@
 
 <script src="api.js"></script>
 <script>
-// Função auxiliar de moeda que faltava
 const brl = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 let produtos = [], categorias = new Set();
 
@@ -151,7 +191,7 @@ async function carregarProdutos() {
     const sel = document.getElementById('filtro-cat');
     const cur = sel.value;
     sel.innerHTML = '<option value="">Todas categorias</option>'
-      + [...categorias].map(c => `<option value="${c}">${c}</option>`).join('');
+      + [...categorias].map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
     sel.value = cur;
 
     const zero   = produtos.filter(p => p.quantidade === 0).length;
@@ -163,6 +203,7 @@ async function carregarProdutos() {
     document.getElementById('st-zero').textContent   = zero;
     document.getElementById('st-valor').textContent  = brl(valor);
 
+    document.getElementById('vazio-box').style.display = produtos.length === 0 ? '' : 'none';
     filtrar();
   } catch(e) { 
     if(typeof toast === 'function') toast('Erro ao carregar: ' + e.message, 'err');
@@ -174,7 +215,7 @@ function filtrar() {
   const busca = document.getElementById('busca').value.toLowerCase();
   const cat   = document.getElementById('filtro-cat').value;
   const lista = produtos.filter(p =>
-    (!busca || p.nome.toLowerCase().includes(busca) || (p.codigo||'').includes(busca)) &&
+    (!busca || p.nome.toLowerCase().includes(busca) || (p.codigo||'').toLowerCase().includes(busca)) &&
     (!cat || p.categoria === cat)
   );
   renderTabela(lista);
@@ -195,21 +236,21 @@ function renderTabela(lista) {
 
     const qtyCtrl = p.ativo
       ? `<div class="qty-ctrl">
-          <button class="qty-btn" onclick="openMov('${p.id}','${p.nome}',-1)">−</button>
+          <button class="qty-btn" onclick="openMov('${esc(p.id)}',-1)">−</button>
           <span class="qty-num">${p.quantidade}</span>
-          <button class="qty-btn" onclick="openMov('${p.id}','${p.nome}',1)">+</button>
+          <button class="qty-btn" onclick="openMov('${esc(p.id)}',1)">+</button>
         </div>`
       : `<span class="text-dim text-mono" style="font-size:11px;">${p.quantidade}</span>`;
 
     const acoes = p.ativo
-      ? `<button class="btn btn-sm btn-ghost" onclick="editarProduto('${p.id}')">✏️</button>
-         <button class="btn btn-sm btn-danger" onclick="inativar('${p.id}','${p.nome}')" title="Inativar produto">🚫</button>`
-      : `<button class="btn btn-sm btn-ghost" onclick="reativar('${p.id}','${p.nome}')" title="Reativar produto" style="color:var(--emerald);border-color:var(--emerald);">↩ Reativar</button>`;
+      ? `<button class="btn btn-sm btn-ghost" onclick="editarProduto('${esc(p.id)}')">✏️</button>
+         <button class="btn btn-sm btn-danger" onclick="inativar('${esc(p.id)}')" title="Inativar produto">🚫</button>`
+      : `<button class="btn btn-sm btn-ghost" onclick="reativar('${esc(p.id)}')" title="Reativar produto" style="color:var(--emerald);border-color:var(--emerald);">↩ Reativar</button>`;
 
     return `<tr class="${p.ativo ? '' : 'row-inativo'}">
-      <td class="text-mono text-dim">${p.codigo||'—'}</td>
-      <td><strong>${p.nome}</strong></td>
-      <td>${p.categoria||'—'}</td>
+      <td class="text-mono text-dim">${esc(p.codigo)||'—'}</td>
+      <td><strong>${esc(p.nome)}</strong></td>
+      <td>${esc(p.categoria)||'—'}</td>
       <td>${qtyCtrl}</td>
       <td class="text-dim">${p.quantidadeMinima}</td>
       <td class="text-mono">${brl(p.precoCusto)}</td>
@@ -224,7 +265,11 @@ function renderTabela(lista) {
 }
 
 function openModal() {
-  document.getElementById('f-id').value=''; 
+  document.getElementById('f-id').value='';
+  ['f-nome','f-codigo','f-cat','f-forn','f-custo','f-venda'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('f-un').value = 'UN';
+  document.getElementById('f-qty').value = 0;
+  document.getElementById('f-min').value = 5;
   document.getElementById('modal-title').textContent = 'Novo Produto';
   document.getElementById('modal').classList.add('open');
 }
@@ -237,6 +282,8 @@ function editarProduto(id) {
   document.getElementById('f-nome').value = p.nome;
   document.getElementById('f-codigo').value = p.codigo||'';
   document.getElementById('f-cat').value = p.categoria||'';
+  document.getElementById('f-un').value = p.unidade||'UN';
+  document.getElementById('f-forn').value = p.fornecedor||'';
   document.getElementById('f-qty').value = p.quantidade;
   document.getElementById('f-min').value = p.quantidadeMinima;
   document.getElementById('f-custo').value = p.precoCusto;
@@ -247,12 +294,20 @@ function editarProduto(id) {
 
 async function salvar() {
   const id = document.getElementById('f-id').value;
+  const existente = id ? produtos.find(x => x.id === id) : null;
+  const nome = document.getElementById('f-nome').value.trim();
+  if (!nome) { toast('Informe o nome do produto.', 'err'); return; }
   const body = {
-    nome: document.getElementById('f-nome').value,
-    quantidade: parseInt(document.getElementById('f-qty').value),
-    quantidadeMinima: parseInt(document.getElementById('f-min').value),
-    precoCusto: parseFloat(document.getElementById('f-custo').value),
-    precoVenda: parseFloat(document.getElementById('f-venda').value)
+    nome,
+    codigo: document.getElementById('f-codigo').value.trim(),
+    categoria: document.getElementById('f-cat').value.trim(),
+    unidade: document.getElementById('f-un').value,
+    fornecedor: document.getElementById('f-forn').value.trim(),
+    descricao: existente ? (existente.descricao ?? null) : null,
+    quantidade: parseInt(document.getElementById('f-qty').value) || 0,
+    quantidadeMinima: parseInt(document.getElementById('f-min').value) || 0,
+    precoCusto: parseFloat(document.getElementById('f-custo').value) || 0,
+    precoVenda: parseFloat(document.getElementById('f-venda').value) || 0
   };
   try {
     if (id) await put(`${API.produtos}/${id}`, body);
@@ -261,9 +316,10 @@ async function salvar() {
   } catch(e) { toast('Erro ao salvar: ' + e.message, 'err'); }
 }
 
-function openMov(id, nome, sign) {
+function openMov(id, sign) {
+  const p = produtos.find(x => x.id === id);
   document.getElementById('mov-id').value = id;
-  document.getElementById('mov-nome-label').textContent = nome;
+  document.getElementById('mov-nome-label').textContent = p ? p.nome : '';
   document.getElementById('mov-tipo').value = sign;
   document.getElementById('modal-mov').classList.add('open');
 }
@@ -278,7 +334,8 @@ async function confirmarMov() {
   } catch(e) { toast('Erro: ' + e.message, 'err'); }
 }
 
-async function inativar(id, nome) {
+async function inativar(id) {
+  const nome = (produtos.find(x => x.id === id) || {}).nome || 'produto';
   if (!confirm(`Inativar "${nome}"?\n\nO produto ficará oculto no PDV e estoque, mas o histórico de vendas é preservado.\nVocê pode reativá-lo depois.`)) return;
   try {
     await del(`${API.produtos}/${id}`);
@@ -287,7 +344,8 @@ async function inativar(id, nome) {
   } catch(e) { toast('Erro: ' + e.message, 'err'); }
 }
 
-async function reativar(id, nome) {
+async function reativar(id) {
+  const nome = (produtos.find(x => x.id === id) || {}).nome || 'produto';
   try {
     await patch(`${API.produtos}/${id}/reativar`);
     toast(`✓ "${nome}" reativado.`);
@@ -308,7 +366,187 @@ async function analisarIA() {
   }
 }
 
-// Inicia a carga
+
+const IMP_MAX = 2000; 
+const IMP_COLS = {
+  codigo:           ['codigo','sku','cod','ean','codigodebarras'],
+  nome:             ['nome','produto'],
+  categoria:        ['categoria'],
+  unidade:          ['unidade','un'],
+  quantidade:       ['quantidade','qtd','qtde','estoque'],
+  quantidadeMinima: ['minimo','estoqueminimo','quantidademinima','qtdminima'],
+  precoCusto:       ['custo','precocusto','precodecusto'],
+  precoVenda:       ['venda','precovenda','precodevenda','preco'],
+  fornecedor:       ['fornecedor']
+};
+let impPronto = []; 
+
+const normHeader = h => String(h||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+
+function decodeBuf(buf) {
+  try { return new TextDecoder('utf-8', {fatal:true}).decode(buf); }
+  catch { return new TextDecoder('windows-1252').decode(buf); }
+}
+
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, '');
+  const first = text.split(/\r?\n/, 1)[0] || '';
+  const delim = (first.match(/;/g)||[]).length >= (first.match(/,/g)||[]).length ? ';' : ',';
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i+1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === delim) { row.push(cur); cur = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i+1] === '\n') i++; row.push(cur); cur = ''; rows.push(row); row = []; }
+    else cur += c;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+
+function numBR(v) {
+  v = String(v||'').trim().replace(/[R$\s]/g, '');
+  if (v === '') return null;
+  if (v.includes(',')) v = v.replace(/\./g, '').replace(',', '.');
+  const n = Number(v);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+function openImp() {
+  document.getElementById('imp-file').value = '';
+  document.getElementById('imp-resumo').innerHTML = '';
+  document.getElementById('imp-preview').innerHTML = '';
+  document.getElementById('imp-confirmar').disabled = true;
+  document.getElementById('imp-confirmar').textContent = 'Importar';
+  impPronto = [];
+  document.getElementById('modal-imp').classList.add('open');
+}
+function closeImp() { document.getElementById('modal-imp').classList.remove('open'); }
+
+function baixarModelo() {
+  const csv = '\uFEFFcodigo;nome;categoria;unidade;quantidade;minimo;custo;venda;fornecedor\r\n'
+            + '7891000100103;Leite Integral 1L;Laticínios;UN;0;5;4,50;6,99;Distribuidora Exemplo\r\n'
+            + 'CAMISETA-P-AZUL;Camiseta Básica Azul P;Vestuário;UN;0;2;22,00;49,90;\r\n';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'modelo-skus-smartbiz.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+async function lerArquivoImp(file) {
+  const resumo = document.getElementById('imp-resumo');
+  const preview = document.getElementById('imp-preview');
+  const btn = document.getElementById('imp-confirmar');
+  btn.disabled = true; impPronto = []; preview.innerHTML = '';
+  if (!file) { resumo.innerHTML = ''; return; }
+
+  let rows;
+  try { rows = parseCSV(decodeBuf(await file.arrayBuffer())); }
+  catch (e) { resumo.innerHTML = `<span style="color:var(--red)">Não foi possível ler o arquivo.</span>`; return; }
+
+  if (rows.length < 2) { resumo.innerHTML = `<span style="color:var(--red)">O arquivo precisa ter o cabeçalho e ao menos uma linha de produto.</span>`; return; }
+  if (rows.length - 1 > IMP_MAX) { resumo.innerHTML = `<span style="color:var(--red)">Máximo de ${IMP_MAX} SKUs por importação — divida o arquivo em partes.</span>`; return; }
+
+  const heads = rows[0].map(normHeader);
+  const idx = {};
+  for (const [campo, aliases] of Object.entries(IMP_COLS)) {
+    const i = heads.findIndex(h => aliases.includes(h));
+    if (i >= 0) idx[campo] = i;
+  }
+  const faltando = ['codigo','nome','precoVenda'].filter(c => !(c in idx));
+  if (faltando.length) {
+    const nomes = {codigo:'codigo', nome:'nome', precoVenda:'venda'};
+    resumo.innerHTML = `<span style="color:var(--red)">Colunas obrigatórias não encontradas: ${faltando.map(c => nomes[c]).join(', ')}. Baixe o modelo para ver o formato.</span>`;
+    return;
+  }
+
+  const jaExistem = new Set(produtos.map(p => (p.codigo||'').trim().toLowerCase()).filter(Boolean));
+  const vistos = new Set();
+  const linhas = [];
+  const cel = (r, campo) => (campo in idx ? (r[idx[campo]] ?? '').trim() : '');
+
+  rows.slice(1).forEach((r, n) => {
+    const linha = n + 2; 
+    const codigo = cel(r,'codigo'), nome = cel(r,'nome');
+    const venda = numBR(cel(r,'precoVenda')), custo = numBR(cel(r,'precoCusto'));
+    const qtd = numBR(cel(r,'quantidade')), min = numBR(cel(r,'quantidadeMinima'));
+    let erro = '';
+    if (!codigo) erro = 'SKU vazio';
+    else if (!nome) erro = 'nome vazio';
+    else if (venda === null) erro = 'preço de venda vazio';
+    else if (Number.isNaN(venda) || venda < 0) erro = 'preço de venda inválido';
+    else if (custo !== null && (Number.isNaN(custo) || custo < 0)) erro = 'custo inválido';
+    else if (qtd !== null && (!Number.isInteger(qtd) || qtd < 0)) erro = 'quantidade inválida';
+    else if (min !== null && (!Number.isInteger(min) || min < 0)) erro = 'mínimo inválido';
+
+    const chave = codigo.toLowerCase();
+    let status = 'ok', msg = '';
+    if (erro) { status = 'erro'; msg = erro; }
+    else if (jaExistem.has(chave)) { status = 'dup'; msg = 'já cadastrado'; }
+    else if (vistos.has(chave)) { status = 'dup'; msg = 'repetido no arquivo'; }
+    if (status === 'ok') vistos.add(chave);
+
+    const item = {
+      codigo, nome,
+      categoria: cel(r,'categoria'),
+      unidade: (cel(r,'unidade') || 'UN').toUpperCase(),
+      quantidade: qtd ?? 0,
+      quantidadeMinima: min ?? 5,
+      precoCusto: custo ?? 0,
+      precoVenda: Number.isNaN(venda) ? 0 : (venda ?? 0),
+      fornecedor: cel(r,'fornecedor')
+    };
+    linhas.push({linha, item, status, msg});
+    if (status === 'ok') impPronto.push(item);
+  });
+
+  const nErro = linhas.filter(l => l.status === 'erro').length;
+  const nDup  = linhas.filter(l => l.status === 'dup').length;
+  resumo.innerHTML =
+    `<strong>${impPronto.length}</strong> SKU(s) prontos para importar`
+    + (nDup  ? ` · <span style="color:var(--yellow)">${nDup} ignorado(s) (já existem ou repetidos)</span>` : '')
+    + (nErro ? ` · <span style="color:var(--red)">${nErro} com erro</span>` : '');
+
+  const badge = {ok:['badge-green','OK'], dup:['badge-yellow','Ignorado'], erro:['badge-red','Erro']};
+  const MAX_PREVIEW = 200;
+  preview.innerHTML = `<table><thead><tr><th>Linha</th><th>SKU</th><th>Produto</th><th>Venda</th><th>Qtd</th><th>Status</th></tr></thead><tbody>`
+    + linhas.slice(0, MAX_PREVIEW).map(l => `<tr>
+        <td class="text-dim text-mono">${l.linha}</td>
+        <td class="text-mono">${esc(l.item.codigo)||'—'}</td>
+        <td>${esc(l.item.nome)||'—'}</td>
+        <td class="text-mono">${brl(l.item.precoVenda)}</td>
+        <td class="text-mono">${l.item.quantidade}</td>
+        <td><span class="badge ${badge[l.status][0]}">${badge[l.status][1]}</span>${l.msg ? ` <span class="text-dim" style="font-size:11px;">${esc(l.msg)}</span>` : ''}</td>
+      </tr>`).join('')
+    + `</tbody></table>`
+    + (linhas.length > MAX_PREVIEW ? `<div class="text-dim" style="font-size:11px;padding:8px 16px;">Mostrando as primeiras ${MAX_PREVIEW} de ${linhas.length} linhas.</div>` : '');
+
+  btn.textContent = impPronto.length ? `Importar ${impPronto.length} SKU(s)` : 'Importar';
+  btn.disabled = impPronto.length === 0;
+}
+
+async function confirmarImportacao() {
+  if (!impPronto.length) return;
+  const btn = document.getElementById('imp-confirmar');
+  const done = spin(btn, 'Importando...');
+  try {
+    const r = await post(`${API.produtos}/importar`, impPronto);
+    done();
+    if (!r) return; 
+    closeImp();
+    toast(`✓ ${r.importados} SKU(s) importado(s)` + (r.ignorados ? ` · ${r.ignorados} ignorado(s)` : ''));
+    if (r.avisos && r.avisos.length) console.warn('Avisos da importação:', r.avisos);
+    carregarProdutos();
+  } catch (e) {
+    done();
+    toast('Erro ao importar: ' + e.message, 'err');
+  }
+}
+
 carregarProdutos();
 </script>
 </body>
